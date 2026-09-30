@@ -1,0 +1,157 @@
+[
+  {
+    "toolId": "home",
+    "title": "TridentPDF - Complete Private PDF Toolkit in Your Browser",
+    "desc": "100% free, private browser PDF tools. Split, merge, compress, convert PDF to Word, Excel, PPT, JPG, sign, OCR & edit with zero server uploads."
+  },
+  {
+    "toolId": "split",
+    "title": "Split PDF Online - Cut & Separate Pages into Parts (Free)",
+    "desc": "Split PDF into N equal parts, custom page ranges, or single-page files with visual page thumbnails and live preview."
+  },
+  {
+    "toolId": "merge",
+    "title": "Merge PDF Files Online - Combine PDFs into One Document",
+    "desc": "Combine multiple PDF files into one single PDF document with custom page reordering, drag-and-drop, and instant merging."
+  },
+  {
+    "toolId": "compress",
+    "title": "Compress PDF Online - Reduce PDF File Size (Free)",
+    "desc": "Shrink PDF file size with extreme, recommended, or high-quality presets while preserving sharp text and clear visuals."
+  },
+  {
+    "toolId": "ocr",
+    "title": "OCR PDF Online - Extract & Recognize Text from Scanned PDFs",
+    "desc": "Make scanned PDF documents searchable and copyable using Tesseract OCR. Recognize text characters in 100+ languages."
+  },
+  {
+    "toolId": "sign",
+    "title": "Batch Sign PDF Online - 1-Tap Stamp Signature All Pages",
+    "desc": "Stamp your digital signature, date, or seal across all pages of a PDF document at exact coordinates with 1-tap synchronization."
+  },
+  {
+    "toolId": "sign-fill",
+    "title": "Sign & Fill PDF Studio - Free Online PDF Form Filler",
+    "desc": "Interactive canvas to add signatures, freeform text fields, date stamps, checkboxes, and initials onto any PDF document."
+  },
+  {
+    "toolId": "scanner",
+    "title": "Camera PDF Scanner - Scan Documents with Phone/Webcam",
+    "desc": "Scan physical paper documents, receipts, and IDs into high-quality PDFs using your phone or webcam with auto-crop and perspective enhancement."
+  },
+  {
+    "toolId": "webpage-pdf",
+    "title": "Webpage to PDF & Full Page Screenshot Converter",
+    "desc": "Convert any public web page URL into a formatted PDF document or full-page browser screenshot image."
+  },
+  {
+    "toolId": "security",
+    "title": "Password Protect & Encrypt PDF Online - 256-bit AES",
+    "desc": "Secure your PDF documents with strong 128-bit or 256-bit AES password encryption and custom permission controls."
+  },
+  {
+    "toolId": "redact",
+    "title": "Redact PDF Online - Permanently Blackout & Sanitize Sensitive Text",
+    "desc": "Permanently remove and blackout sensitive information, SSNs, credit cards, and confidential text from PDF documents."
+  },
+  {
+    "toolId": "ai-summarize",
+    "title": "AI PDF Summarizer - Instant Executive Summaries & Key Points",
+    "desc": "Generate instant executive summaries, key takeaways, and structured bullet points from long contracts, research papers, and reports using AI."
+  },
+  {
+    "toolId": "ai-chat",
+    "title": "Ask AI (Chat with PDF) - Interactive Document Q&A Assistant",
+    "desc": "Chat interactively with your PDF documents. Ask questions, cross-examine clauses, and find exact page citations instantly."
+  },
+  {
+    "toolId": "compress-jpg",
+    "title": "Compress JPG Online - Reduce Image File Size (100% Private)",
+    "desc": "Reduce JPG and JPEG image file sizes with real client-side JPEG compression, adjustable quality controls, and live side-by-side visual comparison."
+  },
+  {
+    "toolId": "organize",
+    "title": "Organize PDF Pages Online - Reorder, Rotate & Delete Pages",
+    "desc": "Reorder, rotate (90°/180°/270°), duplicate, delete, and rearrange pages in any PDF document with an interactive visual thumbnail grid."
+  },
+  {
+    "toolId": "organize",
+    "title": "Rotate PDF Pages Online - 90° / 180° / 270° Rotation",
+    "desc": "Rotate upside-down or landscape PDF pages easily. Apply 90°, 180°, or 270° rotation to individual or all pages."
+  },
+  {
+    "toolId": "convert",
+    "title": "PDF Converter Online - Convert PDF to Word, Excel, Images & More",
+    "desc": "Convert PDFs to Word (DOCX), Excel (XLSX), PowerPoint (PPTX), JPG, PNG, Text, and convert office documents or images to PDF."
+  },
+  {
+    "toolId": "edit",
+    "title": "Edit PDF Online - Add Text, Draw Annotations & Shapes",
+    "desc": "Add text notes, draw pencil annotations, highlight key text, insert geometric shapes, callouts, and arrows on any PDF document."
+  },
+  {
+    "toolId": "ocr",
+    "title": "OCR PDF Online - Extract & Recognize Text from Scanned PDFs",
+    "desc": "Make scanned PDF documents searchable and copyable using Tesseract OCR. Recognize text characters in 100+ languages."
+  },
+  {
+    "toolId": "security",
+    "title": "PDF Security & Password Protection - Encrypt & Unlock PDFs",
+    "desc": "Encrypt PDFs with strong password protection, manage permissions, or decrypt and remove known passwords securely."
+  },
+  {
+    "toolId": "watermark",
+    "title": "Watermark PDF Online - Add Text & Image Stamp Watermarks",
+    "desc": "Apply custom text watermarks (Confidential, Draft, Sample) or image logos onto PDF pages with full control over opacity, rotation, and position."
+  },
+  {
+    "toolId": "crop",
+    "title": "Crop & Resize PDF Online - Trim Margins & Page Dimensions",
+    "desc": "Trim page margins, crop custom bounding boxes, and resize PDF pages to standard dimensions (A4, A3, Letter, Legal) effortlessly."
+  },
+  {
+    "toolId": "compare",
+    "title": "Compare PDF Online - Side-by-Side Visual & Text Difference Checker",
+    "desc": "Compare two PDF documents side-by-side or overlay differences to detect visual changes and textual revisions instantly."
+  },
+  {
+    "toolId": "forms",
+    "title": "PDF Form Builder & Filler - Fill & Design Interactive AcroForms",
+    "desc": "Fill interactive AcroForm fields (text boxes, checkboxes, radio buttons, dropdowns) or design brand new fillable forms easily."
+  },
+  {
+    "toolId": "metadata",
+    "title": "PDF Metadata Inspector & Editor - View, Edit & Wipe Document Properties",
+    "desc": "Inspect, edit, or wipe document metadata properties like Author, Title, Subject, Keywords, Creator, and Creation Date."
+  },
+  {
+    "toolId": "extract",
+    "title": "PDF Content Extractor - Rip Images, Text & Tables from PDF",
+    "desc": "Extract raw text, embedded high-res images, tables, and structured data from your PDF documents in seconds."
+  },
+  {
+    "toolId": "ai-summarize",
+    "title": "AI PDF Summarizer - Instant Executive Summaries & Key Points",
+    "desc": "Generate instant executive summaries, key takeaways, and structured bullet points from long contracts, research papers, and reports using AI."
+  },
+  {
+    "toolId": "ai-chat",
+    "title": "Ask AI (Chat with PDF) - Interactive Document Q&A Assistant",
+    "desc": "Chat interactively with your PDF documents. Ask questions, cross-examine clauses, and find exact page citations instantly."
+  },
+  {
+    "toolId": "ai-redact",
+    "title": "AI Smart PII Redaction - Auto-Detect & Blackout Sensitive Data",
+    "desc": "Auto-detect SSNs, credit card numbers, emails, phone numbers, and sensitive entities in PDFs for 1-click batch redaction."
+  },
+  {
+    "toolId": "ai-translate",
+    "title": "AI Document Translator - Translate PDF into 50+ Languages",
+    "desc": "Translate entire PDF documents across 50+ languages while preserving page layout, typography, and original formatting."
+  },
+  {
+    "toolId": "ai-extract",
+    "title": "AI Table & Invoice Extractor - Convert Invoices & Tables to CSV/JSON",
+    "desc": "Extract structured financial data, invoices, line items, and nested tables directly into clean CSV and JSON spreadsheets."
+  }
+]

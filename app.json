@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "TridentPDF",
+    "slug": "tridentpdf",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#090A0F"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tridentpdf.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "TridentPDF needs camera access to scan documents into PDF format.",
+        "NSPhotoLibraryUsageDescription": "TridentPDF needs photo library access to convert your photos into PDF."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#090A0F"
+      },
+      "package": "com.tridentpdf.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow TridentPDF to access your camera to scan documents."
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}
