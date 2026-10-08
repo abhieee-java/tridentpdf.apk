@@ -1,9 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
-import { Sun, Moon, ShieldCheck } from 'lucide-react-native';
+import { Sun, Moon, ShieldCheck, Search } from 'lucide-react-native';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onOpenSearch?: () => void;
+  onOpenDpdp?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onOpenDpdp }) => {
   const { theme, isDark, toggleTheme } = useAppTheme();
 
   return (
@@ -26,10 +31,14 @@ export const Header: React.FC = () => {
             <Text style={[styles.title, { color: isDark ? '#FFFFFF' : '#0F0E1A' }]}>
               TridentPDF
             </Text>
-            <View style={styles.privateBadge}>
+            <TouchableOpacity
+              style={styles.privateBadge}
+              onPress={onOpenDpdp}
+              activeOpacity={0.7}
+            >
               <ShieldCheck size={10} color="#10B981" />
               <Text style={styles.privateText}>100% PRIVATE</Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             In-Browser & On-Device Studio
@@ -37,20 +46,39 @@ export const Header: React.FC = () => {
         </View>
       </View>
 
-      {/* Theme Toggle Button */}
-      <TouchableOpacity
-        style={[
-          styles.themeBtn,
-          {
-            backgroundColor: isDark ? '#13131F' : '#F0EDFA',
-            borderColor: isDark ? '#27272A' : '#D4CFE8',
-          },
-        ]}
-        onPress={toggleTheme}
-        activeOpacity={0.7}
-      >
-        {isDark ? <Sun size={17} color="#FBBF24" /> : <Moon size={17} color="#3B82F6" />}
-      </TouchableOpacity>
+      {/* Action Buttons */}
+      <View style={styles.actionsRight}>
+        {onOpenSearch && (
+          <TouchableOpacity
+            style={[
+              styles.iconBtn,
+              {
+                backgroundColor: isDark ? '#13131F' : '#F0EDFA',
+                borderColor: isDark ? '#27272A' : '#D4CFE8',
+              },
+            ]}
+            onPress={onOpenSearch}
+            activeOpacity={0.7}
+          >
+            <Search size={16} color={isDark ? '#06B6D4' : '#2563EB'} />
+          </TouchableOpacity>
+        )}
+
+        {/* Theme Toggle Button */}
+        <TouchableOpacity
+          style={[
+            styles.iconBtn,
+            {
+              backgroundColor: isDark ? '#13131F' : '#F0EDFA',
+              borderColor: isDark ? '#27272A' : '#D4CFE8',
+            },
+          ]}
+          onPress={toggleTheme}
+          activeOpacity={0.7}
+        >
+          {isDark ? <Sun size={16} color="#FBBF24" /> : <Moon size={16} color="#3B82F6" />}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -118,9 +146,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 0.5,
   },
-  themeBtn: {
-    width: 36,
-    height: 36,
+  actionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconBtn: {
+    width: 35,
+    height: 35,
     borderRadius: 11,
     borderWidth: 1,
     alignItems: 'center',

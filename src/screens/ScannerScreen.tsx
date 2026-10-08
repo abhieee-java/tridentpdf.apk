@@ -36,7 +36,7 @@ export const ScannerScreen: React.FC = () => {
         </View>
         <Text style={[styles.permTitle, { color: theme.textPrimary }]}>Camera Access Required</Text>
         <Text style={[styles.permSub, { color: theme.textSecondary }]}>
-          TridentPDF uses your camera locally to scan documents, auto-enhance contrast, and compile multi-page PDFs.
+          WPS Scanner uses your camera locally to scan documents, auto-enhance contrast, and compile multi-page PDFs.
         </Text>
         <TouchableOpacity style={styles.permButton} onPress={requestPermission}>
           <Text style={styles.permButtonText}>Grant Permission</Text>

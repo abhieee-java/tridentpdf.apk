@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "TridentPDF",
-    "slug": "tridentpdf",
+    "slug": "tridentpdf-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,8 +16,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.tridentpdf.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "TridentPDF needs camera access to scan documents into PDF format.",
-        "NSPhotoLibraryUsageDescription": "TridentPDF needs photo library access to convert your photos into PDF."
+        "NSCameraUsageDescription": "TridentPDF needs camera access to scan documents into PDF format locally.",
+        "NSPhotoLibraryUsageDescription": "TridentPDF needs photo library access to import images and convert files."
       }
     },
     "android": {

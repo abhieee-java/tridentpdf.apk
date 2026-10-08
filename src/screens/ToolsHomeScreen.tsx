@@ -11,10 +11,18 @@ import {
 } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 import { ToolCard } from '../components/ToolCard';
+import { ToolDetailModal } from '../components/ToolDetailModal';
+import { CommandPaletteModal } from '../components/CommandPaletteModal';
+import { DpdpComplianceModal } from '../components/DpdpComplianceModal';
 import { PDFEngine } from '../services/pdfEngine';
+import {
+  TOOL_CATEGORIES,
+  TOOL_REGISTRY,
+  searchTools,
+  ToolDefinition,
+} from '../data/toolRegistry';
+import { AppTool, ToolCategory } from '../types';
 import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
-import * as Sharing from 'expo-sharing';
 import {
   Search,
   X,
@@ -24,53 +32,62 @@ import {
   CircleCheck,
   RefreshCw,
   Trash2,
-  Grid,
-  Scissors,
-  RotateCw,
-  ArrowLeftRight,
-  PenTool,
-  Lock,
-  ScanText,
-  Sparkles,
+  SlidersHorizontal,
+  FilePlus,
+  Command,
 } from 'lucide-react-native';
 
-interface ToolItem {
-  id: string;
-  name: string;
-  shortName: string;
-  description: string;
-  category: string;
-  categoryName: string;
-  badge?: string | null;
-  isNew?: boolean;
-  isAi?: boolean;
-  accentColor?: string;
-  icon: string;
-  iconBg: string;
-  badgeColor: string;
-}
+const ICON_EMOJI_MAP: Record<string, string> = {
+  Scissors: '✂️',
+  Stamp: '🔏',
+  PenTool: '✍️',
+  Scan: '📸',
+  Globe: '🌐',
+  Minimize2: '🗜️',
+  Layers: '📑',
+  RotateCw: '🔄',
+  ArrowLeftRight: '🔄',
+  Edit3: '✏️',
+  ScanText: '🔍',
+  Lock: '🔒',
+  Crop: '📐',
+  GitCompare: '⚖️',
+  CheckSquare: '📝',
+  EyeOff: '⬛',
+  Info: '🏷️',
+  Archive: '📦',
+  BrainCircuit: '🧠',
+  MessageSquare: '💬',
+  Bot: '🤖',
+  Languages: '🌐',
+  FileSpreadsheet: '📊',
+  Sparkles: '✨',
+  Search: '🔍',
+  FileQuestion: '❓',
+};
+
+const BADGE_COLOR_MAP: Record<string, string> = {
+  cyan: '#06B6D4',
+  blue: '#2563EB',
+  purple: '#A855F7',
+  amber: '#F59E0B',
+  emerald: '#10B981',
+  rose: '#EF4444',
+  ai: '#8B5CF6',
+};
 
 export const ToolsHomeScreen: React.FC = () => {
   const { theme, isDark } = useAppTheme();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<ToolCategory>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [processingStatus, setProcessingStatus] = useState<string>('');
   const [activeFile, setActiveFile] = useState<{ name: string; uri: string; size?: number } | null>(null);
 
-  // Exact categories from tridentpdf.vercel.app
-  const categories = [
-    { id: 'all', label: 'All Tools', icon: Grid },
-    { id: 'core', label: 'Core & Split', icon: Scissors },
-    { id: 'organize', label: 'Organize & Edit', icon: RotateCw },
-    { id: 'convert', label: 'Convert & Scan', icon: ArrowLeftRight },
-    { id: 'sign_forms', label: 'Sign & Forms', icon: PenTool },
-    { id: 'security', label: 'Security & Redact', icon: Lock },
-    { id: 'extract_ocr', label: 'Extract & OCR', icon: ScanText },
-    { id: 'ai_smart', label: 'AI & Smart Tools', icon: Sparkles },
-  ];
+  // Modals state
+  const [selectedToolId, setSelectedToolId] = useState<AppTool | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isDpdpModalOpen, setIsDpdpModalOpen] = useState(false);
 
-  // Pick PDF File Handler for Hero Dropzone
+  // Pick PDF Handler
   const handlePickDocument = async () => {
     try {
       const res = await DocumentPicker.getDocumentAsync({
@@ -91,581 +108,33 @@ export const ToolsHomeScreen: React.FC = () => {
     }
   };
 
-  // Tool Handlers
-  const handleMerge = async () => {
+  // Generate Sample PDF Handler
+  const handleCreateSampleDoc = async () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        multiple: true,
-        copyToCacheDirectory: true,
+      const uri = await PDFEngine.createSampleDocument('TridentPDF Demo Document');
+      setActiveFile({
+        name: 'TridentPDF_Sample.pdf',
+        uri,
+        size: 24500,
       });
-
-      if (res.canceled || !res.assets || res.assets.length < 2) {
-        Alert.alert('Merge PDF', 'Please select at least 2 PDF documents to merge.');
-        return;
-      }
-
-      setIsProcessing(true);
-      setProcessingStatus(`Merging ${res.assets.length} documents in memory...`);
-
-      const uris = res.assets.map(a => a.uri);
-      const outputUri = await PDFEngine.mergePDFs(uris);
-
-      setIsProcessing(false);
-      Alert.alert(
-        'Success! 🎉',
-        'PDFs merged successfully on your device.',
-        [
-          { text: 'Done', style: 'cancel' },
-          { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-        ]
-      );
+      Alert.alert('Demo Ready! 📄', 'A verified sample PDF was loaded directly in local memory.');
     } catch (err: any) {
-      setIsProcessing(false);
-      Alert.alert('Error', err.message || 'Failed to merge documents');
-    }
-  };
-
-  const handleSplit = async () => {
-    try {
-      let targetUri = activeFile?.uri;
-      if (!targetUri) {
-        const res = await DocumentPicker.getDocumentAsync({
-          type: 'application/pdf',
-          copyToCacheDirectory: true,
-        });
-        if (res.canceled || !res.assets || res.assets.length === 0) return;
-        targetUri = res.assets[0].uri;
-      }
-
-      setIsProcessing(true);
-      setProcessingStatus('Extracting page 1 into a separate file...');
-
-      const outputUri = await PDFEngine.splitPDF(targetUri, [1]);
-
-      setIsProcessing(false);
-      Alert.alert('Page Extracted! ✂️', 'Page 1 extracted into a new PDF.', [
-        { text: 'Done', style: 'cancel' },
-        { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-      ]);
-    } catch (err: any) {
-      setIsProcessing(false);
-      Alert.alert('Error', err.message || 'Failed to split document');
-    }
-  };
-
-  const handleRotate = async () => {
-    try {
-      let targetUri = activeFile?.uri;
-      if (!targetUri) {
-        const res = await DocumentPicker.getDocumentAsync({
-          type: 'application/pdf',
-          copyToCacheDirectory: true,
-        });
-        if (res.canceled || !res.assets || res.assets.length === 0) return;
-        targetUri = res.assets[0].uri;
-      }
-
-      setIsProcessing(true);
-      setProcessingStatus('Rotating pages 90° clockwise...');
-
-      const outputUri = await PDFEngine.rotatePages(targetUri, 90);
-
-      setIsProcessing(false);
-      Alert.alert('Rotated! 🔄', 'All pages rotated 90 degrees.', [
-        { text: 'Done', style: 'cancel' },
-        { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-      ]);
-    } catch (err: any) {
-      setIsProcessing(false);
-      Alert.alert('Error', err.message || 'Failed to rotate PDF');
-    }
-  };
-
-  const handleWatermark = async () => {
-    try {
-      let targetUri = activeFile?.uri;
-      if (!targetUri) {
-        const res = await DocumentPicker.getDocumentAsync({
-          type: 'application/pdf',
-          copyToCacheDirectory: true,
-        });
-        if (res.canceled || !res.assets || res.assets.length === 0) return;
-        targetUri = res.assets[0].uri;
-      }
-
-      setIsProcessing(true);
-      setProcessingStatus('Injecting CONFIDENTIAL watermark across pages...');
-
-      const outputUri = await PDFEngine.addWatermark(targetUri, 'CONFIDENTIAL', 0.35);
-
-      setIsProcessing(false);
-      Alert.alert('Watermark Applied! 🛡️', 'Watermark injected across all pages.', [
-        { text: 'Done', style: 'cancel' },
-        { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-      ]);
-    } catch (err: any) {
-      setIsProcessing(false);
-      Alert.alert('Error', err.message || 'Failed to watermark PDF');
-    }
-  };
-
-  const handleImagesToPDF = async () => {
-    try {
-      const res = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsMultipleSelection: true,
-        quality: 0.9,
-      });
-
-      if (res.canceled || !res.assets || res.assets.length === 0) return;
-
-      setIsProcessing(true);
-      setProcessingStatus(`Converting ${res.assets.length} images to PDF...`);
-
-      const uris = res.assets.map(a => a.uri);
-      const outputUri = await PDFEngine.imagesToPDF(uris);
-
-      setIsProcessing(false);
-      Alert.alert('PDF Created! 📸', 'High-res PDF generated from your images.', [
-        { text: 'Done', style: 'cancel' },
-        { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-      ]);
-    } catch (err: any) {
-      setIsProcessing(false);
-      Alert.alert('Error', err.message || 'Failed to convert images');
-    }
-  };
-
-  // Full 25 Tools Registry
-  const tools: ToolItem[] = [
-    {
-      id: 'split',
-      name: 'PDF Splitter',
-      shortName: 'Split',
-      description: 'Split PDF into 2, 3, or N equal parts, custom page ranges, or single-page files with live visual previews.',
-      category: 'core',
-      categoryName: 'Core & Split',
-      badge: 'Popular',
-      isNew: false,
-      isAi: false,
-      icon: '✂️',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'sign',
-      name: 'Batch Document Signer',
-      shortName: 'Batch Sign',
-      description: '1-Tap stamp signatures across all pages or custom page sets in exact coordinates with date and stamp options.',
-      category: 'sign_forms',
-      categoryName: 'Sign & Forms',
-      badge: '1-Tap Sync',
-      isNew: false,
-      isAi: false,
-      icon: '✍️',
-      iconBg: 'rgba(37, 99, 235, 0.12)',
-      badgeColor: '#2563EB',
-    },
-    {
-      id: 'sign-fill',
-      name: 'Sign & Fill Studio',
-      shortName: 'Sign & Fill',
-      description: 'Interactive canvas to place freeform signatures, custom text fields, date stamps, checkboxes, and initials.',
-      category: 'sign_forms',
-      categoryName: 'Sign & Forms',
-      badge: 'Interactive',
-      isNew: false,
-      isAi: false,
-      icon: '🖋️',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'scanner',
-      name: 'PDF Camera Scanner',
-      shortName: 'Scanner',
-      description: 'Scan physical papers using camera or photos with auto-corner detection, perspective correction & enhancement.',
-      category: 'convert',
-      categoryName: 'Convert & Scan',
-      badge: 'Hardware Camera',
-      isNew: false,
-      isAi: false,
-      icon: '📸',
-      iconBg: 'rgba(16, 185, 129, 0.12)',
-      badgeColor: '#10B981',
-    },
-    {
-      id: 'webpage-pdf',
-      name: 'Webpage → PDF & Screenshot',
-      shortName: 'Web to PDF',
-      description: 'Convert any public website URL into a formatted PDF or capture a full-page browser visual screenshot.',
-      category: 'convert',
-      categoryName: 'Convert & Scan',
-      badge: 'URL & Screenshot',
-      isNew: true,
-      isAi: false,
-      icon: '🌐',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'compress-jpg',
-      name: 'Compress JPG',
-      shortName: 'Compress JPG',
-      description: 'Reduce JPG and JPEG image file sizes with real client-side JPEG compression & live side-by-side comparison.',
-      category: 'convert',
-      categoryName: 'Convert & Scan',
-      badge: 'JPG Quality Engine',
-      isNew: true,
-      isAi: false,
-      icon: '🗜️',
-      iconBg: 'rgba(245, 158, 11, 0.12)',
-      badgeColor: '#F59E0B',
-    },
-    {
-      id: 'merge',
-      name: 'PDF Merger',
-      shortName: 'Merge',
-      description: 'Combine multiple PDF files into one seamless document with custom ordering and instant drag-and-drop.',
-      category: 'core',
-      categoryName: 'Core & Split',
-      badge: 'Multi-File',
-      isNew: false,
-      isAi: false,
-      icon: '📑',
-      iconBg: 'rgba(16, 185, 129, 0.12)',
-      badgeColor: '#10B981',
-    },
-    {
-      id: 'organize',
-      name: 'Page Organizer',
-      shortName: 'Organize',
-      description: 'Reorder, rotate (90°/180°/270°), duplicate, delete, and manage page order with visual thumbnail grid.',
-      category: 'organize',
-      categoryName: 'Organize & Edit',
-      badge: 'Visual Grid',
-      isNew: false,
-      isAi: false,
-      icon: '🗂️',
-      iconBg: 'rgba(139, 92, 246, 0.12)',
-      badgeColor: '#8B5CF6',
-    },
-    {
-      id: 'compress',
-      name: 'Compress PDF',
-      shortName: 'Compress',
-      description: 'Reduce PDF file size with extreme, recommended, or high-quality presets while preserving readability.',
-      category: 'core',
-      categoryName: 'Core & Split',
-      badge: 'Size Reducer',
-      isNew: false,
-      isAi: false,
-      icon: '📉',
-      iconBg: 'rgba(245, 158, 11, 0.12)',
-      badgeColor: '#F59E0B',
-    },
-    {
-      id: 'convert',
-      name: 'PDF Converter',
-      shortName: 'Convert',
-      description: 'Convert PDFs to Word (DOCX), Excel (XLSX), PowerPoint (PPTX), JPG, PNG, and convert other files to PDF.',
-      category: 'convert',
-      categoryName: 'Convert & Scan',
-      badge: 'Multi-Format',
-      isNew: false,
-      isAi: false,
-      icon: '🔄',
-      iconBg: 'rgba(139, 92, 246, 0.12)',
-      badgeColor: '#8B5CF6',
-    },
-    {
-      id: 'edit',
-      name: 'PDF Editor',
-      shortName: 'Editor',
-      description: 'Add text notes, draw annotations, insert geometric shapes, callouts, arrows, and highlight key sections.',
-      category: 'organize',
-      categoryName: 'Organize & Edit',
-      badge: 'Markup & Draw',
-      isNew: false,
-      isAi: false,
-      icon: '✏️',
-      iconBg: 'rgba(236, 72, 153, 0.12)',
-      badgeColor: '#EC4899',
-    },
-    {
-      id: 'ocr',
-      name: 'OCR PDF (Text Recognition)',
-      shortName: 'OCR',
-      description: 'Extract text from scanned documents and images to make pages searchable, selectable, and copyable.',
-      category: 'extract_ocr',
-      categoryName: 'Extract & OCR',
-      badge: 'Tesseract OCR',
-      isNew: false,
-      isAi: true,
-      icon: '🔍',
-      iconBg: 'rgba(139, 92, 246, 0.12)',
-      badgeColor: '#8B5CF6',
-    },
-    {
-      id: 'security',
-      name: 'PDF Security & Password',
-      shortName: 'Security',
-      description: 'Encrypt PDFs with strong password protection, manage permissions, or decrypt and remove known passwords.',
-      category: 'security',
-      categoryName: 'Security & Redact',
-      badge: 'Encryption',
-      isNew: false,
-      isAi: false,
-      icon: '🔒',
-      iconBg: 'rgba(37, 99, 235, 0.12)',
-      badgeColor: '#2563EB',
-    },
-    {
-      id: 'watermark',
-      name: 'PDF Watermark & Stamp',
-      shortName: 'Watermark',
-      description: 'Apply custom text watermarks (Confidential, Draft), company logos, or remove existing overlays.',
-      category: 'security',
-      categoryName: 'Security & Redact',
-      badge: 'Text & Image',
-      isNew: false,
-      isAi: false,
-      icon: '🛡️',
-      iconBg: 'rgba(239, 68, 68, 0.12)',
-      badgeColor: '#EF4444',
-    },
-    {
-      id: 'crop',
-      name: 'PDF Crop & Resize',
-      shortName: 'Crop & Resize',
-      description: 'Trim page margins, crop custom bounding boxes, and resize pages to standard sizes (A4, A3, Letter, Legal).',
-      category: 'organize',
-      categoryName: 'Organize & Edit',
-      badge: 'Dimension Presets',
-      isNew: false,
-      isAi: false,
-      icon: '📐',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'compare',
-      name: 'PDF Compare & Diff',
-      shortName: 'Compare',
-      description: 'Compare two PDF documents side-by-side or overlay differences to detect visual and textual changes.',
-      category: 'organize',
-      categoryName: 'Organize & Edit',
-      badge: 'Diff Viewer',
-      isNew: false,
-      isAi: false,
-      icon: '⚖️',
-      iconBg: 'rgba(99, 102, 241, 0.12)',
-      badgeColor: '#6366F1',
-    },
-    {
-      id: 'forms',
-      name: 'PDF Form Builder & Filler',
-      shortName: 'Forms',
-      description: 'Fill interactive AcroForm fields (text, checkboxes, radio buttons, dropdowns) or design new fillable forms.',
-      category: 'sign_forms',
-      categoryName: 'Sign & Forms',
-      badge: 'AcroForms',
-      isNew: false,
-      isAi: false,
-      icon: '📝',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'redact',
-      name: 'PDF Redaction (Privacy)',
-      shortName: 'Redact',
-      description: 'Permanently blackout and erase sensitive data, PII, SSNs, credit card numbers, and confidential text.',
-      category: 'security',
-      categoryName: 'Security & Redact',
-      badge: 'Permanent Erase',
-      isNew: false,
-      isAi: false,
-      icon: '⬛',
-      iconBg: 'rgba(239, 68, 68, 0.12)',
-      badgeColor: '#EF4444',
-    },
-    {
-      id: 'metadata',
-      name: 'PDF Metadata Inspector',
-      shortName: 'Metadata',
-      description: 'View, edit, or wipe document metadata properties like Author, Title, Subject, Producer, and Creation Date.',
-      category: 'security',
-      categoryName: 'Security & Redact',
-      badge: 'EXIF & Info',
-      isNew: false,
-      isAi: false,
-      icon: '🏷️',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'extract',
-      name: 'PDF Extractor (Text & Images)',
-      shortName: 'Extract',
-      description: 'Extract raw text, embedded images, tables, and structured data from your PDF document in high resolution.',
-      category: 'extract_ocr',
-      categoryName: 'Extract & OCR',
-      badge: 'Asset Exporter',
-      isNew: false,
-      isAi: false,
-      icon: '📦',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'ai-summarize',
-      name: 'AI PDF Summarizer',
-      shortName: 'AI Summary',
-      description: 'Generate instant executive summaries, key bullet points, and critical takeaways from contracts and reports.',
-      category: 'ai_smart',
-      categoryName: 'AI & Smart Tools',
-      badge: 'Executive Brief',
-      isNew: false,
-      isAi: true,
-      icon: '🧠',
-      iconBg: 'rgba(168, 85, 247, 0.12)',
-      badgeColor: '#A855F7',
-    },
-    {
-      id: 'ai-chat',
-      name: 'Ask AI (Chat with PDF)',
-      shortName: 'Chat PDF',
-      description: 'Chat interactively with your PDF documents. Ask questions, cross-examine clauses, and find citations.',
-      category: 'ai_smart',
-      categoryName: 'AI & Smart Tools',
-      badge: 'Neural RAG',
-      isNew: false,
-      isAi: true,
-      icon: '💬',
-      iconBg: 'rgba(99, 102, 241, 0.12)',
-      badgeColor: '#6366F1',
-    },
-    {
-      id: 'ai-redact',
-      name: 'AI Smart PII Redaction',
-      shortName: 'Auto Redact',
-      description: 'Auto-detect SSNs, credit card numbers, emails, phone numbers, and sensitive entities in PDFs for 1-click batch redaction.',
-      category: 'ai_smart',
-      categoryName: 'AI & Smart Tools',
-      badge: 'PII Detector',
-      isNew: false,
-      isAi: true,
-      icon: '🤖',
-      iconBg: 'rgba(16, 185, 129, 0.12)',
-      badgeColor: '#10B981',
-    },
-    {
-      id: 'ai-translate',
-      name: 'AI Document Translator',
-      shortName: 'Translator',
-      description: 'Translate entire PDF documents across 50+ languages while preserving page layout, typography, and formatting.',
-      category: 'ai_smart',
-      categoryName: 'AI & Smart Tools',
-      badge: '50+ Languages',
-      isNew: false,
-      isAi: true,
-      icon: '🌐',
-      iconBg: 'rgba(6, 182, 212, 0.12)',
-      badgeColor: '#06B6D4',
-    },
-    {
-      id: 'ai-extract',
-      name: 'AI Table & Invoice Extractor',
-      shortName: 'Table Extract',
-      description: 'Extract structured financial data, invoices, line items, and nested tables directly into clean CSV spreadsheets.',
-      category: 'ai_smart',
-      categoryName: 'AI & Smart Tools',
-      badge: 'CSV / JSON',
-      isNew: false,
-      isAi: true,
-      icon: '📊',
-      iconBg: 'rgba(16, 185, 129, 0.12)',
-      badgeColor: '#10B981',
-    },
-  ];
-
-  // Tool Click Handler
-  const handleToolClick = (tool: ToolItem) => {
-    switch (tool.id) {
-      case 'merge':
-        handleMerge();
-        break;
-      case 'split':
-        handleSplit();
-        break;
-      case 'organize':
-      case 'rotate':
-        handleRotate();
-        break;
-      case 'watermark':
-        handleWatermark();
-        break;
-      case 'scanner':
-        Alert.alert('PDF Scanner', 'Switch to the "Scanner" tab on the bottom bar to scan papers with your hardware camera.');
-        break;
-      case 'sign':
-      case 'sign-fill':
-        Alert.alert('Sign & Fill', 'Switch to the "Sign & Fill" tab on the bottom bar to draw and stamp signatures.');
-        break;
-      case 'ai-chat':
-      case 'ai-summarize':
-      case 'ai-redact':
-      case 'ai-translate':
-      case 'ai-extract':
-        Alert.alert('AI Suite', 'Switch to the "AI Suite" tab on the bottom bar to interact with our neural assistant.');
-        break;
-      case 'webpage-pdf':
-      case 'compress-jpg':
-      case 'compress':
-      case 'convert':
-      case 'edit':
-      case 'ocr':
-      case 'security':
-      case 'crop':
-      case 'compare':
-      case 'forms':
-      case 'redact':
-      case 'metadata':
-      case 'extract':
-      default:
-        handlePickDocument();
-        break;
+      Alert.alert('Error', err.message || 'Failed to generate sample document');
     }
   };
 
   // Search & Filter Memo
   const filteredTools = useMemo(() => {
-    let list = tools;
-    if (selectedCategory !== 'all') {
-      list = list.filter(t => t.category === selectedCategory);
-    }
-    if (searchQuery.trim().length > 0) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter(
-        t =>
-          t.name.toLowerCase().includes(q) ||
-          t.shortName.toLowerCase().includes(q) ||
-          t.description.toLowerCase().includes(q) ||
-          t.categoryName.toLowerCase().includes(q)
-      );
-    }
-    return list;
+    return searchTools(searchQuery, selectedCategory);
   }, [selectedCategory, searchQuery]);
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#000000' : '#F7F7F8' }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* MOBILE HERO SECTION (EXACT REPLICA OF TRIDENTPDF.VERCEL.APP MOBILE) */}
+        {/* HERO SECTION */}
         <View style={styles.heroSection}>
           {activeFile ? (
-            /* ACTIVE PDF LOADED CARD */
+            /* ACTIVE PDF LOADED HUB */
             <View
               style={[
                 styles.activeFileCard,
@@ -690,13 +159,14 @@ export const ToolsHomeScreen: React.FC = () => {
                 <View style={styles.fileInfo}>
                   <View style={styles.loadedBadgeRow}>
                     <CircleCheck size={11} color="#10B981" />
-                    <Text style={styles.loadedBadgeText}>ACTIVE PDF LOADED</Text>
+                    <Text style={styles.loadedBadgeText}>ACTIVE PDF LOADED IN RAM</Text>
                   </View>
                   <Text style={[styles.fileName, { color: isDark ? '#FFFFFF' : '#0F0E1A' }]} numberOfLines={1}>
                     {activeFile.name}
                   </Text>
                   <Text style={[styles.fileMeta, { color: isDark ? '#22D3EE' : '#1D4ED8' }]}>
-                    {activeFile.size ? `${(activeFile.size / 1024).toFixed(1)} KB` : 'Ready in memory'} • Local Buffer
+                    {activeFile.size ? `${(activeFile.size / 1024).toFixed(1)} KB` : 'Ready in buffer'} • Zero Server
+                    Uploads
                   </Text>
                 </View>
               </View>
@@ -724,7 +194,7 @@ export const ToolsHomeScreen: React.FC = () => {
           ) : (
             /* DEFAULT WEBSITE HERO CALLOUT */
             <View style={styles.heroCallout}>
-              <View
+              <TouchableOpacity
                 style={[
                   styles.privacyPill,
                   {
@@ -732,22 +202,25 @@ export const ToolsHomeScreen: React.FC = () => {
                     borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(37, 99, 235, 0.2)',
                   },
                 ]}
+                onPress={() => setIsDpdpModalOpen(true)}
+                activeOpacity={0.7}
               >
                 <ShieldCheck size={13} color="#10B981" />
                 <Text style={[styles.privacyPillText, { color: isDark ? '#93C5FD' : '#1D4ED8' }]}>
-                  100% Private Client-Side PDF Tools
+                  100% Private Client-Side PDF Tools • DPDP 2023
                 </Text>
-              </View>
+              </TouchableOpacity>
 
               <Text style={[styles.heroTitle, { color: isDark ? '#FFFFFF' : '#111827' }]}>
-                TridentPDF
+                TridentPDF Studio
               </Text>
 
               <Text style={[styles.heroSubtitle, { color: isDark ? '#9CA3AF' : '#4B5563' }]}>
-                Every tool you need to work with PDFs in one place — all processing runs directly in your device memory.
+                Every tool you need to work with PDFs in one place — all processing runs directly in volatile device RAM
+                with zero server retention.
               </Text>
 
-              <View style={styles.heroBtnWrap}>
+              <View style={styles.heroBtnRow}>
                 <TouchableOpacity
                   style={styles.primaryHeroBtn}
                   onPress={handlePickDocument}
@@ -756,12 +229,23 @@ export const ToolsHomeScreen: React.FC = () => {
                   <FolderOpen size={16} color="#FFFFFF" />
                   <Text style={styles.primaryHeroBtnText}>Select PDF File</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.secondaryHeroBtn, { borderColor: isDark ? '#3F3F46' : '#D1D5DB' }]}
+                  onPress={handleCreateSampleDoc}
+                  activeOpacity={0.85}
+                >
+                  <FilePlus size={15} color={isDark ? '#FFFFFF' : '#111827'} />
+                  <Text style={[styles.secondaryHeroBtnText, { color: isDark ? '#FFFFFF' : '#111827' }]}>
+                    Load Sample
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           )}
         </View>
 
-        {/* SEARCH BAR (EXACT COPY OF WEBSITE INPUT) */}
+        {/* SEARCH & COMMAND PALETTE LAUNCHER */}
         <View style={styles.searchWrapper}>
           <View
             style={[
@@ -775,26 +259,34 @@ export const ToolsHomeScreen: React.FC = () => {
             <Search size={16} color={isDark ? '#06B6D4' : '#2563EB'} />
             <TextInput
               style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#111827' }]}
-              placeholder="Search tools (split, sign, ocr, edit...)"
+              placeholder="Search 25+ tools (split, merge, compress, sign...)"
               placeholderTextColor={isDark ? '#71717A' : '#9CA3AF'}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            {searchQuery.length > 0 && (
+            {searchQuery.length > 0 ? (
               <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <X size={15} color={theme.textMuted} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.commandQuickBtn}
+                onPress={() => setIsCommandPaletteOpen(true)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <SlidersHorizontal size={14} color={theme.textMuted} />
               </TouchableOpacity>
             )}
           </View>
         </View>
 
-        {/* CATEGORY TABS (HORIZONTAL PILLS AS ON WEBSITE) */}
+        {/* CATEGORY TABS (HORIZONTAL PILLS) */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryScroll}
         >
-          {categories.map(cat => {
+          {TOOL_CATEGORIES.map(cat => {
             const isActive = selectedCategory === cat.id;
             return (
               <TouchableOpacity
@@ -842,7 +334,7 @@ export const ToolsHomeScreen: React.FC = () => {
           <Text style={[styles.sectionTitle, { color: isDark ? '#FFFFFF' : '#111827' }]}>
             {selectedCategory === 'all'
               ? 'All Document Tools'
-              : categories.find(c => c.id === selectedCategory)?.label}
+              : TOOL_CATEGORIES.find(c => c.id === selectedCategory)?.label}
           </Text>
           <View
             style={[
@@ -859,53 +351,69 @@ export const ToolsHomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* TOOLS 2-COLUMN GRID (MOBILE TOOL CARDS) */}
+        {/* 25 TOOLS 2-COLUMN GRID */}
         <View style={styles.grid}>
-          {filteredTools.map(tool => (
-            <ToolCard
-              key={tool.id}
-              id={tool.id}
-              title={tool.name}
-              description={tool.description}
-              icon={tool.icon}
-              badge={tool.badge}
-              badgeColor={tool.badgeColor}
-              iconBg={tool.iconBg}
-              isNew={tool.isNew}
-              isAi={tool.isAi}
-              onPress={() => handleToolClick(tool)}
-            />
-          ))}
+          {filteredTools.map(tool => {
+            const emoji = ICON_EMOJI_MAP[tool.iconName] || '⚡';
+            const badgeColor = BADGE_COLOR_MAP[tool.badgeType || 'blue'] || '#2563EB';
+
+            return (
+              <ToolCard
+                key={tool.id}
+                id={tool.id}
+                title={tool.name}
+                description={tool.description}
+                icon={emoji}
+                badge={tool.badge}
+                badgeColor={badgeColor}
+                iconBg={isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(37, 99, 235, 0.08)'}
+                isNew={tool.isNew}
+                isAi={tool.isAiTool}
+                onPress={() => setSelectedToolId(tool.id)}
+              />
+            );
+          })}
         </View>
 
         {/* FOOTER DPDP TRUST BADGE */}
-        <View style={styles.footerWrap}>
+        <TouchableOpacity
+          style={styles.footerWrap}
+          onPress={() => setIsDpdpModalOpen(true)}
+          activeOpacity={0.7}
+        >
           <View style={styles.dpdpRow}>
             <ShieldCheck size={14} color="#10B981" />
-            <Text style={[styles.dpdpText, { color: isDark ? '#71717A' : '#6B7280' }]}>
-              DPDP Act 2023 Compliant & Verified
+            <Text style={[styles.dpdpText, { color: isDark ? '#93C5FD' : '#1D4ED8' }]}>
+              DPDP Act 2023 Statutory Compliance Verified
             </Text>
           </View>
-          <Text style={[styles.dpdpSub, { color: isDark ? '#52525B' : '#9CA3AF' }]}>
-            100% In-Device Processing • Zero Server Retention
+          <Text style={[styles.dpdpSub, { color: isDark ? '#71717A' : '#6B7280' }]}>
+            100% In-Device Processing • Zero Cloud Retention • Tap for Notice & DPO
           </Text>
-        </View>
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* PROCESSING OVERLAY */}
-      {isProcessing && (
-        <View style={styles.loadingOverlay}>
-          <View style={[styles.loadingBox, { backgroundColor: isDark ? '#181824' : '#FFFFFF' }]}>
-            <ActivityIndicator size="large" color="#2563EB" />
-            <Text style={[styles.loadingText, { color: isDark ? '#FFFFFF' : '#111827' }]}>
-              {processingStatus}
-            </Text>
-            <Text style={[styles.loadingSub, { color: theme.textSecondary }]}>
-              100% Local In-Device Execution • Zero Server Uploads
-            </Text>
-          </View>
-        </View>
-      )}
+      {/* DEDICATED TOOL DETAIL MODAL (FULL WORK & KNOWLEDGE ENGINE) */}
+      <ToolDetailModal
+        visible={!!selectedToolId}
+        toolId={selectedToolId}
+        onClose={() => setSelectedToolId(null)}
+        activeFile={activeFile}
+        onSelectActiveFile={setActiveFile}
+      />
+
+      {/* COMMAND PALETTE MODAL */}
+      <CommandPaletteModal
+        visible={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectTool={id => setSelectedToolId(id)}
+      />
+
+      {/* DPDP STATUTORY COMPLIANCE MODAL */}
+      <DpdpComplianceModal
+        visible={isDpdpModalOpen}
+        onClose={() => setIsDpdpModalOpen(false)}
+      />
     </View>
   );
 };
@@ -954,10 +462,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 320,
   },
-  heroBtnWrap: {
-    marginTop: 6,
-    width: '100%',
+  heroBtnRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+    marginTop: 6,
   },
   primaryHeroBtn: {
     flexDirection: 'row',
@@ -965,7 +474,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#2563EB',
-    paddingHorizontal: 22,
+    paddingHorizontal: 20,
     paddingVertical: 11,
     borderRadius: 13,
     shadowColor: '#2563EB',
@@ -973,12 +482,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.28,
     shadowRadius: 6,
     elevation: 4,
-    minWidth: 170,
   },
   primaryHeroBtnText: {
     color: '#FFFFFF',
     fontSize: 12.5,
     fontWeight: '800',
+  },
+  secondaryHeroBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderRadius: 13,
+  },
+  secondaryHeroBtnText: {
+    fontSize: 12.5,
+    fontWeight: '700',
   },
   activeFileCard: {
     borderRadius: 18,
@@ -1084,6 +606,9 @@ const styles = StyleSheet.create({
     padding: 0,
     fontWeight: '600',
   },
+  commandQuickBtn: {
+    padding: 3,
+  },
   categoryScroll: {
     paddingHorizontal: 16,
     paddingVertical: 4,
@@ -1139,39 +664,10 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   dpdpText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 11.5,
+    fontWeight: '800',
   },
   dpdpSub: {
     fontSize: 10,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.72)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  loadingBox: {
-    padding: 24,
-    borderRadius: 20,
-    alignItems: 'center',
-    gap: 10,
-    maxWidth: 300,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  loadingText: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  loadingSub: {
-    fontSize: 11,
-    textAlign: 'center',
   },
 });

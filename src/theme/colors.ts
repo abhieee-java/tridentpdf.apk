@@ -12,7 +12,7 @@ export const Palette = {
 
 export const darkTheme = {
   isDark: true,
-  bg: '#000000', // Pure black like tridentpdf.vercel.app dark:bg-black
+  bg: '#000000',
   surface: '#0A0A0E',
   surfaceElevated: '#121217',
   surfaceCard: '#13131A',
@@ -32,14 +32,14 @@ export const darkTheme = {
 
 export const lightTheme = {
   isDark: false,
-  bg: '#F7F7F8', // Exactly like tridentpdf.vercel.app bg-[#F7F7F8]
+  bg: '#F7F7F8',
   surface: '#FFFFFF',
   surfaceElevated: '#F1F3F5',
   surfaceCard: '#FFFFFF',
   cardGlow: 'rgba(0, 0, 0, 0.03)',
   border: '#EBE7F7',
   borderHighlight: 'rgba(37, 99, 235, 0.3)',
-  textPrimary: '#1F1F24', // Exactly like tridentpdf.vercel.app text-[#1F1F24]
+  textPrimary: '#1F1F24',
   textSecondary: '#52525B',
   textMuted: '#A1A1AA',
   primary: '#2563EB',

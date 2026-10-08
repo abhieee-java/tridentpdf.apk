@@ -42,3 +42,4 @@ print_*.js
 extract_full_registry.js
 create_assets.js
 phone_screenshot*.png
+.agents/

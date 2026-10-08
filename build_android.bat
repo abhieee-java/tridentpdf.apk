@@ -5,9 +5,9 @@ echo ========================================================
 echo   Building TridentPDF Mobile - Release APK and AAB
 echo ========================================================
 
-set JAVA_HOME=E:\android-tools\jdk-17
-set ANDROID_HOME=E:\android-tools\android-sdk
-set ANDROID_SDK_ROOT=E:\android-tools\android-sdk
+set JAVA_HOME=E:\Android\Android Studio\Android Studio\jbr
+set ANDROID_HOME=E:\Android\Sdk
+set ANDROID_SDK_ROOT=E:\Android\Sdk
 set GRADLE_USER_HOME=E:\.gradle
 set PATH=%JAVA_HOME%\bin;%ANDROID_HOME%\cmdline-tools\latest\bin;%ANDROID_HOME%\platform-tools;%PATH%
 
