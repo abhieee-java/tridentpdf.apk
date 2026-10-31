@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "test": "node tests/e2e/run_all.js",
+    "test": "node tests/e2e/run_all.js && node tests/tridentpdf_studio.test.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web"

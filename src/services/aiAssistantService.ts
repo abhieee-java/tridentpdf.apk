@@ -18,16 +18,16 @@ export class AIAssistantService {
 
     // Email pattern
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b/g;
-    // Phone pattern (International & Domestic)
+    // Phone pattern (International & Domestic with optional country code, delimiters, and extensions)
     const phoneRegex = /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
-    // US SSN pattern
-    const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
-    // Credit card pattern
+    // US SSN pattern (with hyphens, spaces, or dots)
+    const ssnRegex = /\b\d{3}[-.\s]\d{2}[-.\s]\d{4}\b/g;
+    // Credit card pattern (16 digits with spaces or hyphens)
     const ccRegex = /\b(?:\d{4}[-\s]?){3}\d{4}\b/g;
-    // Indian Aadhaar pattern (12 digits with spaces or hyphens)
-    const aadhaarRegex = /\b\d{4}[-\s]\d{4}[-\s]\d{4}\b/g;
-    // Indian PAN pattern (5 letters, 4 digits, 1 letter)
-    const panRegex = /\b[A-Z]{5}[0-9]{4}[A-Z]\b/g;
+    // Indian Aadhaar pattern (12 digits with spaces, non-breaking spaces, hyphens, or continuous)
+    const aadhaarRegex = /\b\d{4}[-\s\u00A0]?\d{4}[-\s\u00A0]?\d{4}\b/g;
+    // Indian PAN pattern (5 uppercase/lowercase letters, 4 digits, 1 letter)
+    const panRegex = /\b[A-Za-z]{5}[0-9]{4}[A-Za-z]\b/g;
 
     let redacted = text;
 
@@ -104,7 +104,7 @@ export class AIAssistantService {
       return `🔒 Privacy & Confidentiality Guarantee:\n\nAll content in this document is protected under zero-knowledge client boundaries. No data has been or will be transmitted over any network.`;
     }
 
-    return `🤖 WPS AI Assistant:\n\nIn response to your query regarding "${question}":\n\nThe loaded document addresses this subject under the applicable operational articles. The text has been analyzed in volatile RAM and is completely secure.`;
+    return `🤖 TridentPDF AI Assistant:\n\nIn response to your query regarding "${question}":\n\nThe loaded document addresses this subject under the applicable operational articles. The text has been analyzed in volatile RAM and is completely secure.`;
   }
 
   /**
@@ -115,14 +115,14 @@ export class AIAssistantService {
     targetLanguage: string
   ): Promise<string> {
     const languageGreetings: Record<string, string> = {
-      Spanish: 'Documento traducido al español (WPS Office Local Engine):',
-      French: 'Document traduit en français (Moteur local WPS Office):',
-      German: 'Dokument ins Deutsche übersetzt (Lokale WPS Office-Engine):',
-      Hindi: 'हिंदी में अनुवादित दस्तावेज़ (WPS Office लोकल इंजन):',
-      Japanese: '日本語に翻訳されたドキュメント (WPS Office ローカルエンジン):',
+      Spanish: 'Documento traducido al español (TridentPDF Local Engine):',
+      French: 'Document traduit en français (Moteur local TridentPDF):',
+      German: 'Dokument ins Deutsche übersetzt (Lokale TridentPDF-Engine):',
+      Hindi: 'हिंदी में अनुवादित दस्तावेज़ (TridentPDF लोकल इंजन):',
+      Japanese: '日本語に翻訳されたドキュメント (TridentPDF ローカルエンジン):',
     };
 
-    const header = languageGreetings[targetLanguage] || `Document translated to ${targetLanguage} (WPS Office Engine):`;
+    const header = languageGreetings[targetLanguage] || `Document translated to ${targetLanguage} (TridentPDF Engine):`;
     return `${header}\n\n[100% On-Device Translation Simulator]\n\n${text}\n\n[Layout preserved • Zero data uploaded to cloud]`;
   }
 
@@ -133,7 +133,7 @@ export class AIAssistantService {
     const headers = ['Item Description', 'Qty', 'Unit Price', 'Total'];
     const rows = [
       ['Document Processing Fee', '1', '$0.00', '$0.00'],
-      ['WPS Office Client Engine', '1', '$0.00', '$0.00'],
+      ['TridentPDF Client Engine', '1', '$0.00', '$0.00'],
       ['DPDP 2023 Verification', '1', '$0.00', '$0.00'],
       ['Total Client Cost', '-', '-', '$0.00 (100% Free)'],
     ];

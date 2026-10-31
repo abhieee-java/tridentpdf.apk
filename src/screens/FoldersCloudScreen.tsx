@@ -29,6 +29,9 @@ import {
 } from 'lucide-react-native';
 import { FormatBadge, DocumentType } from '../components/FormatBadge';
 import { DocumentStorageService } from '../services/documentStorage';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import * as Haptics from 'expo-haptics';
 
 export type SupportedOfficeFormat = DocumentType;
 
@@ -194,14 +197,35 @@ export const FoldersCloudScreen: React.FC<FoldersCloudScreenProps> = ({
         modifiedAt: Date.now(),
       });
 
-      Alert.alert('Imported Successfully', `${file.name} saved to local storage.`);
+      await ActiveDocumentStore.setActiveDocument({
+        name: file.name,
+        uri: targetUri,
+        type: docType,
+        size: file.size || 0,
+      });
+
+      SystemErrorService.showNotification({
+        code: 'OPERATION_FAILED',
+        title: 'Imported to Vault',
+        message: `${file.name} saved safely to local storage.`,
+        severity: 'success',
+      });
       scanLocalFiles();
     } catch (err: any) {
-      Alert.alert('Import Error', err.message);
+      SystemErrorService.reportError(err, 'Vault Import');
     }
   };
 
   const handleOpenLocal = (doc: LocalDocument) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    } catch {}
+    ActiveDocumentStore.setActiveDocument({
+      name: doc.name,
+      uri: doc.uri,
+      type: doc.format,
+      size: doc.size,
+    });
     if (onOpenDocument) {
       onOpenDocument({
         filePath: doc.uri,
@@ -214,13 +238,19 @@ export const FoldersCloudScreen: React.FC<FoldersCloudScreenProps> = ({
 
   const handleShareLocal = async (doc: LocalDocument) => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(doc.uri);
       } else {
-        Alert.alert('Share Not Supported', 'Sharing is not available on this device.');
+        SystemErrorService.showNotification({
+          code: 'OPERATION_FAILED',
+          title: 'Share Notice',
+          message: 'Native sharing is not available on this device.',
+          severity: 'warning',
+        });
       }
     } catch (err: any) {
-      Alert.alert('Share Error', err.message);
+      SystemErrorService.reportError(err, 'Share Document');
     }
   };
 
@@ -232,10 +262,17 @@ export const FoldersCloudScreen: React.FC<FoldersCloudScreenProps> = ({
         style: 'destructive',
         onPress: async () => {
           try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
             await DocumentStorageService.removeDocument(doc.id);
             scanLocalFiles();
+            SystemErrorService.showNotification({
+              code: 'OPERATION_FAILED',
+              title: 'Document Deleted',
+              message: `"${doc.name}" removed from local storage.`,
+              severity: 'info',
+            });
           } catch (err: any) {
-            Alert.alert('Delete Failed', err.message);
+            SystemErrorService.reportError(err, 'Delete Document');
           }
         },
       },

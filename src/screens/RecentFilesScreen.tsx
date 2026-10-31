@@ -13,6 +13,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import { WPSHeader, DocumentFormatFilter, SortField, SortDirection } from '../components/WPSHeader';
 import { DocumentCard, DocumentItem } from '../components/DocumentCard';
 import { DocumentStorageService } from '../services/documentStorage';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import * as Haptics from 'expo-haptics';
 import { Search, FilePlus, FolderOpen } from 'lucide-react-native';
 
 export interface DocumentRouteParams {
@@ -67,6 +70,15 @@ export const RecentFilesScreen: React.FC<RecentFilesScreenProps> = ({ onOpenDocu
 
   // Document Handlers
   const handleOpenDoc = (doc: DocumentItem) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    } catch {}
+    ActiveDocumentStore.setActiveDocument({
+      name: doc.name,
+      uri: doc.uri,
+      size: doc.size,
+      type: doc.type,
+    });
     if (onOpenDocument) {
       onOpenDocument({
         filePath: doc.uri,
@@ -77,17 +89,34 @@ export const RecentFilesScreen: React.FC<RecentFilesScreenProps> = ({ onOpenDocu
   };
 
   const handleStarToggle = async (doc: DocumentItem) => {
-    await DocumentStorageService.toggleStarDocument(doc.id);
-    loadDocuments();
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      await DocumentStorageService.toggleStarDocument(doc.id);
+      loadDocuments();
+    } catch (e) {
+      SystemErrorService.reportError(e, 'Favorite Toggle');
+    }
   };
 
   const handleDelete = async (doc: DocumentItem) => {
-    await DocumentStorageService.removeDocument(doc.id);
-    loadDocuments();
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      await DocumentStorageService.removeDocument(doc.id);
+      loadDocuments();
+      SystemErrorService.showNotification({
+        code: 'OPERATION_FAILED',
+        title: 'Document Removed',
+        message: `"${doc.name}" removed from workspace.`,
+        severity: 'info',
+      });
+    } catch (e) {
+      SystemErrorService.reportError(e, 'Delete Document');
+    }
   };
 
   const handleImportFile = async () => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       const res = await DocumentPicker.getDocumentAsync({
         type: '*/*',
         copyToCacheDirectory: true,
@@ -110,9 +139,23 @@ export const RecentFilesScreen: React.FC<RecentFilesScreenProps> = ({ onOpenDocu
       };
 
       await DocumentStorageService.addDocument(newDoc);
+      await ActiveDocumentStore.setActiveDocument({
+        name: newDoc.name,
+        uri: newDoc.uri,
+        size: newDoc.size,
+        type: newDoc.type,
+      });
+
+      SystemErrorService.showNotification({
+        code: 'OPERATION_FAILED',
+        title: 'Document Ready',
+        message: `Imported "${file.name}" into local workspace.`,
+        severity: 'success',
+      });
+
       loadDocuments();
     } catch (e) {
-      console.error('Failed to pick document:', e);
+      SystemErrorService.reportError(e, 'Document Import');
     }
   };
 

@@ -25,7 +25,7 @@ export const AIScreen: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      text: 'Hello! I am your WPS AI Document Assistant. You can ask me to summarize documents, clarify clauses, or detect sensitive personal data (PII). All processing respects your on-device privacy.',
+      text: 'Hello! I am your TridentPDF AI Document Assistant. You can ask me to summarize documents, clarify clauses, or detect sensitive personal data (PII). All processing executes 100% on-device in volatile RAM under DPDP Act 2023 zero-retention rules.',
     },
   ]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -46,7 +46,7 @@ export const AIScreen: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setLoading(true);
 
-    const reply = await AIAssistantService.queryDocument('WPS Office Document Context', userMsg);
+    const reply = await AIAssistantService.queryDocument('TridentPDF Document Context', userMsg);
     setLoading(false);
     setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
   };

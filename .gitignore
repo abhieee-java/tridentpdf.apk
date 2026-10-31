@@ -43,3 +43,4 @@ extract_full_registry.js
 create_assets.js
 phone_screenshot*.png
 .agents/
+tests/e2e/test_results.json

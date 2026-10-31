@@ -5,7 +5,14 @@ echo ========================================================
 echo   Building TridentPDF Mobile - Release APK and AAB
 echo ========================================================
 
-set JAVA_HOME=E:\Android\Android Studio\Android Studio\jbr
+REM Configure JDK 17 / JBR path (Drive E)
+if exist "E:\android-tools\jdk-17" (
+    set JAVA_HOME=E:\android-tools\jdk-17
+) else if exist "E:\Android\Android Studio\Android Studio\jbr" (
+    set JAVA_HOME=E:\Android\Android Studio\Android Studio\jbr
+) else (
+    set JAVA_HOME=E:\android-tools\jdk-17
+)
 set ANDROID_HOME=E:\Android\Sdk
 set ANDROID_SDK_ROOT=E:\Android\Sdk
 set GRADLE_USER_HOME=E:\.gradle

@@ -24,6 +24,10 @@ import { AIAssistantService } from '../services/aiAssistantService';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as Sharing from 'expo-sharing';
+import * as Haptics from 'expo-haptics';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import { FileAccessHubModal } from './FileAccessHubModal';
 import {
   X,
   ShieldCheck,
@@ -100,6 +104,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
   const [resultUri, setResultUri] = useState<string | null>(null);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
   const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(0);
+  const [isFileAccessHubOpen, setIsFileAccessHubOpen] = useState<boolean>(false);
 
   // Split tool state
   const [splitPagesText, setSplitPagesText] = useState('1');
@@ -152,55 +157,26 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
   const seoPath = getPrimaryPathForTool(toolId);
   const seoConfig: SeoPageConfig = getSeoConfigByPath(seoPath);
 
-  // File Picker Helper
-  const pickDocument = async () => {
+  // File Picker Helper: Launches native WPS File Access Hub
+  const pickDocument = () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        copyToCacheDirectory: true,
-      });
-      if (res.canceled || !res.assets || res.assets.length === 0) return;
-      const file = res.assets[0];
-      const newFile = { name: file.name, uri: file.uri, size: file.size };
-      onSelectActiveFile(newFile);
-      if (!mergeFiles.some(f => f.uri === newFile.uri)) {
-        setMergeFiles(prev => [...prev, newFile]);
-      }
-    } catch (err: any) {
-      Alert.alert('File Picker', err.message || 'Failed to select PDF file');
-    }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    } catch {}
+    setIsFileAccessHubOpen(true);
   };
 
-  // Multiple Files Picker for Merge
-  const pickMultipleDocuments = async () => {
+  // Multiple Files Picker for Merge: Launches native WPS File Access Hub
+  const pickMultipleDocuments = () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        multiple: true,
-        copyToCacheDirectory: true,
-      });
-      if (res.canceled || !res.assets || res.assets.length === 0) return;
-      const newFiles = res.assets.map(a => ({ name: a.name, uri: a.uri }));
-      setMergeFiles(prev => {
-        const existingUris = new Set(prev.map(f => f.uri));
-        const filtered = newFiles.filter(f => !existingUris.has(f.uri));
-        return [...prev, ...filtered];
-      });
-      if (res.assets[0] && !activeFile) {
-        onSelectActiveFile({
-          name: res.assets[0].name,
-          uri: res.assets[0].uri,
-          size: res.assets[0].size,
-        });
-      }
-    } catch (err: any) {
-      Alert.alert('File Picker', err.message || 'Failed to select PDF files');
-    }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    } catch {}
+    setIsFileAccessHubOpen(true);
   };
 
   // Tool Action Handlers
   const handleExecuteOperation = async () => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       setIsProcessing(true);
       setResultUri(null);
       setResultMessage(null);
@@ -215,39 +191,52 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
         onSelectActiveFile({ name: 'TridentPDF_Sample.pdf', uri: targetUri });
       }
 
+      const registerOutput = async (uri: string, msg: string) => {
+        setResultUri(uri);
+        setResultMessage(msg);
+        await ActiveDocumentStore.registerToolOutput({
+          uri,
+          suggestedName: `${toolId}_${activeFile?.name || 'document.pdf'}`,
+          toolTag: `#${toolId}`,
+          successMessage: msg,
+        });
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      };
+
       switch (toolId) {
         case 'split': {
           setProcessingStatus('Extracting page ranges in volatile RAM...');
-          const pages = splitPagesText
-            .split(',')
-            .map(p => parseInt(p.trim(), 10))
-            .filter(n => !isNaN(n) && n > 0);
-          const validPages = pages.length > 0 ? pages : [1];
+          const validPages = PDFEngine.parsePageRanges(splitPagesText);
           const out = await PDFEngine.splitPDF(targetUri!, validPages);
-          setResultUri(out);
-          setResultMessage(`Successfully extracted page(s) ${validPages.join(', ')} into a new PDF!`);
+          await registerOutput(out, `Successfully extracted page(s) ${validPages.join(', ')} into a new PDF!`);
           break;
         }
 
         case 'merge': {
           if (mergeFiles.length < 2) {
             setIsProcessing(false);
-            Alert.alert('Merge PDF', 'Please add at least 2 PDF documents to merge.');
+            SystemErrorService.showNotification({
+              code: 'INSUFFICIENT_FILES',
+              title: 'Merge PDF Requirement',
+              message: 'Please add at least 2 PDF documents to merge.',
+              severity: 'warning',
+              actionLabel: 'Add Files',
+              onAction: () => pickMultipleDocuments(),
+            });
             return;
           }
           setProcessingStatus(`Merging ${mergeFiles.length} documents into one...`);
           const uris = mergeFiles.map(f => f.uri);
           const out = await PDFEngine.mergePDFs(uris);
-          setResultUri(out);
-          setResultMessage(`Merged ${mergeFiles.length} documents successfully!`);
+          await registerOutput(out, `Merged ${mergeFiles.length} documents successfully!`);
           break;
         }
 
         case 'compress': {
           setProcessingStatus(`Compressing PDF with ${compressPreset} profile...`);
           const res = await PDFEngine.compressPDF(targetUri!, compressPreset);
-          setResultUri(res.outputUri);
-          setResultMessage(
+          await registerOutput(
+            res.outputUri,
             `Optimized! Size reduced from ${(res.originalSize / 1024).toFixed(1)} KB to ${(res.compressedSize / 1024).toFixed(1)} KB (Saved ${res.ratio}).`
           );
           break;
@@ -262,8 +251,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
             watermarkColor,
             watermarkAngle
           );
-          setResultUri(out);
-          setResultMessage(`Watermark "${watermarkText}" injected across all pages!`);
+          await registerOutput(out, `Watermark "${watermarkText}" injected across all pages!`);
           break;
         }
 
@@ -271,16 +259,14 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
         case 'edit': {
           setProcessingStatus(`Rotating pages by ${rotateAngle}°...`);
           const out = await PDFEngine.rotatePages(targetUri!, rotateAngle);
-          setResultUri(out);
-          setResultMessage(`Pages rotated ${rotateAngle}° clockwise!`);
+          await registerOutput(out, `Pages rotated ${rotateAngle}° clockwise!`);
           break;
         }
 
         case 'crop': {
           setProcessingStatus(`Resizing page dimensions to ${resizePreset.toUpperCase()}...`);
           const out = await PDFEngine.cropAndResize(targetUri!, resizePreset);
-          setResultUri(out);
-          setResultMessage(`Document resized to standard ${resizePreset.toUpperCase()} format!`);
+          await registerOutput(out, `Document resized to standard ${resizePreset.toUpperCase()} format!`);
           break;
         }
 
@@ -292,16 +278,14 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
             { page: 1, x: 50, y: 650, width: 280, height: 20, label: 'CONFIDENTIAL' },
           ];
           const out = await PDFEngine.redactPDF(targetUri!, boxes);
-          setResultUri(out);
-          setResultMessage('Sensitive data zones permanently blackened and redacted.');
+          await registerOutput(out, 'Sensitive data zones permanently blackened and redacted.');
           break;
         }
 
         case 'metadata': {
           setProcessingStatus('Wiping and sanitizing document metadata tags...');
           const out = await PDFEngine.wipeMetadata(targetUri!);
-          setResultUri(out);
-          setResultMessage('All metadata tags (Author, Title, Creator, Producer) wiped clean!');
+          await registerOutput(out, 'All metadata tags (Author, Title, Creator, Producer) wiped clean!');
           break;
         }
 
@@ -312,8 +296,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
             producer: 'TridentPDF AES-256 Encrypted Container',
             keywords: ['Encrypted', 'DPDP Compliant', 'Protected'],
           });
-          setResultUri(out);
-          setResultMessage('Document security policies and metadata applied successfully.');
+          await registerOutput(out, 'Document security policies and metadata applied successfully.');
           break;
         }
 
@@ -328,16 +311,14 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
           }
           setProcessingStatus('Compressing JPEG image client-side...');
           const out = await PDFEngine.imagesToPDF([res.assets[0].uri]);
-          setResultUri(out);
-          setResultMessage('Image compressed and formatted into high-definition PDF!');
+          await registerOutput(out, 'Image compressed and formatted into high-definition PDF!');
           break;
         }
 
         case 'webpage-pdf': {
           setProcessingStatus(`Rendering formatted PDF for ${webUrl}...`);
           const out = await PDFEngine.createSampleDocument(`Webpage Snapshot: ${webUrl}`);
-          setResultUri(out);
-          setResultMessage(`Webpage converted to PDF with vector typography preservation!`);
+          await registerOutput(out, `Webpage converted to PDF with vector typography preservation!`);
           break;
         }
 
@@ -346,24 +327,21 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
           const out = await PDFEngine.updateMetadata(targetUri!, {
             keywords: ['OCR Processed', 'Searchable Text Layer Added', 'Tesseract Engine'],
           });
-          setResultUri(out);
-          setResultMessage('Text recognition complete! Document is now searchable.');
+          await registerOutput(out, 'Text recognition complete! Document is now searchable.');
           break;
         }
 
         case 'convert': {
           setProcessingStatus('Converting document structure...');
           const out = await PDFEngine.createSampleDocument(`Converted Document: ${activeFile?.name || 'Output'}`);
-          setResultUri(out);
-          setResultMessage('Conversion completed with layout and font structures preserved.');
+          await registerOutput(out, 'Conversion completed with layout and font structures preserved.');
           break;
         }
 
         case 'compare': {
           setProcessingStatus('Comparing document vector trees...');
           const out = await PDFEngine.createSampleDocument('TridentPDF Document Comparison & Diff Report');
-          setResultUri(out);
-          setResultMessage('Comparison analysis completed! Diff report generated.');
+          await registerOutput(out, 'Comparison analysis completed! Diff report generated.');
           break;
         }
 
@@ -372,16 +350,14 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
           const out = await PDFEngine.updateMetadata(targetUri!, {
             keywords: ['AcroForm Filled', 'Flattened'],
           });
-          setResultUri(out);
-          setResultMessage('AcroForm fields successfully saved and flattened.');
+          await registerOutput(out, 'AcroForm fields successfully saved and flattened.');
           break;
         }
 
         case 'extract': {
           setProcessingStatus('Extracting vector assets, text, and embedded tables...');
           const out = await PDFEngine.createSampleDocument('TridentPDF Extracted Assets Archive');
-          setResultUri(out);
-          setResultMessage('Raw text layers and embedded images extracted successfully.');
+          await registerOutput(out, 'Raw text layers and embedded images extracted successfully.');
           break;
         }
 
@@ -411,8 +387,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
           const out = await PDFEngine.redactPDF(targetUri!, [
             { page: 1, x: 50, y: 700, width: 350, height: 20, label: 'PII REDACTED' },
           ]);
-          setResultUri(out);
-          setResultMessage(`Detected & redacted ${piiRes.detections.length} sensitive items (Emails, SSNs, Aadhaar)!`);
+          await registerOutput(out, `Detected & redacted ${piiRes.detections.length} sensitive items (Emails, SSNs, Aadhaar)!`);
           break;
         }
 
@@ -436,13 +411,13 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
         default: {
           setProcessingStatus('Processing document in memory...');
           const out = await PDFEngine.createSampleDocument(toolDef?.name || 'Document');
-          setResultUri(out);
-          setResultMessage('Operation completed successfully in local device RAM!');
+          await registerOutput(out, 'Operation completed successfully in local device RAM!');
           break;
         }
       }
     } catch (err: any) {
-      Alert.alert('Operation Error', err.message || 'An error occurred during execution');
+      SystemErrorService.reportError(err, toolDef?.name || 'PDF Studio');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
     } finally {
       setIsProcessing(false);
     }
@@ -1089,6 +1064,19 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
           </View>
         </ScrollView>
       </View>
+
+      {/* Local Vault File Access Hub Modal */}
+      <FileAccessHubModal
+        visible={isFileAccessHubOpen}
+        onClose={() => setIsFileAccessHubOpen(false)}
+        onSelectFile={file => {
+          onSelectActiveFile(file);
+          if (!mergeFiles.some(f => f.uri === file.uri)) {
+            setMergeFiles(prev => [...prev, file]);
+          }
+        }}
+        allowedExtensions={['pdf']}
+      />
     </Modal>
   );
 };

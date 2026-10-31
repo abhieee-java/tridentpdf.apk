@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -16,6 +16,10 @@ import { WPSBottomNav, WPSTab } from './src/components/WPSBottomNav';
 import { WPSActionMenu, WPSActionType } from './src/components/WPSActionMenu';
 import { FormatBadge } from './src/components/FormatBadge';
 import { DocumentStorageService, getFileFormat } from './src/services/documentStorage';
+import { SystemErrorService } from './src/services/systemErrorService';
+import { ActiveDocumentStore } from './src/services/activeDocumentStore';
+import { SystemNotificationBanner } from './src/components/SystemNotificationBanner';
+import { DocumentViewerScreen } from './src/screens/DocumentViewerScreen';
 
 // Screens
 import { RecentFilesScreen } from './src/screens/RecentFilesScreen';
@@ -23,7 +27,11 @@ import { FoldersCloudScreen } from './src/screens/FoldersCloudScreen';
 import { WPSToolsScreen } from './src/screens/WPSToolsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { ScannerScreen } from './src/screens/ScannerScreen';
+import { Header } from './src/components/Header';
+import { CommandPaletteModal } from './src/components/CommandPaletteModal';
+import { ToolDetailModal } from './src/components/ToolDetailModal';
 import { DpdpComplianceModal } from './src/components/DpdpComplianceModal';
+import { AppTool } from './src/types';
 import { ArrowLeft, Share2, FileText, CheckCircle2 } from 'lucide-react-native';
 
 export interface DocumentRouteParams {
@@ -47,6 +55,18 @@ function MainApp() {
   });
   const [isActionMenuOpen, setIsActionMenuOpen] = useState<boolean>(false);
   const [isDpdpOpen, setIsDpdpOpen] = useState<boolean>(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+  const [selectedToolId, setSelectedToolId] = useState<AppTool | null>(null);
+  const [activeFile, setActiveFile] = useState<{ name: string; uri: string; size?: number } | null>(null);
+
+  useEffect(() => {
+    const unsub = ActiveDocumentStore.subscribe(doc => {
+      if (doc) {
+        setActiveFile({ name: doc.name, uri: doc.uri, size: doc.size });
+      }
+    });
+    return () => unsub();
+  }, []);
 
   const handleOpenDocument = (params: DocumentRouteParams) => {
     setCurrentRoute({
@@ -74,12 +94,24 @@ function MainApp() {
             size: 1024,
             modifiedAt: Date.now(),
           });
+          await ActiveDocumentStore.setActiveDocument({
+            name: docName,
+            uri: filePath,
+            type: 'docx',
+            size: 1024,
+          });
+          SystemErrorService.showNotification({
+            code: 'OPERATION_FAILED',
+            title: 'Document Created',
+            message: `Created "${docName}" locally in workspace.`,
+            severity: 'success',
+          });
           setCurrentRoute({
             type: 'document',
             params: { filePath, fileName: docName, fileType: 'docx', readOnly: false },
           });
         } catch (e: any) {
-          Alert.alert('Error Creating Document', e.message);
+          SystemErrorService.reportError(e, 'Create Document');
         }
         break;
       }
@@ -100,12 +132,24 @@ function MainApp() {
             size: 1024,
             modifiedAt: Date.now(),
           });
+          await ActiveDocumentStore.setActiveDocument({
+            name: sheetName,
+            uri: filePath,
+            type: 'xlsx',
+            size: 1024,
+          });
+          SystemErrorService.showNotification({
+            code: 'OPERATION_FAILED',
+            title: 'Spreadsheet Created',
+            message: `Created "${sheetName}" locally in workspace.`,
+            severity: 'success',
+          });
           setCurrentRoute({
             type: 'document',
             params: { filePath, fileName: sheetName, fileType: 'xlsx', readOnly: false },
           });
         } catch (e: any) {
-          Alert.alert('Error Creating Spreadsheet', e.message);
+          SystemErrorService.reportError(e, 'Create Spreadsheet');
         }
         break;
       }
@@ -126,12 +170,24 @@ function MainApp() {
             size: 1024,
             modifiedAt: Date.now(),
           });
+          await ActiveDocumentStore.setActiveDocument({
+            name: slideName,
+            uri: filePath,
+            type: 'pptx',
+            size: 1024,
+          });
+          SystemErrorService.showNotification({
+            code: 'OPERATION_FAILED',
+            title: 'Presentation Created',
+            message: `Created "${slideName}" locally in workspace.`,
+            severity: 'success',
+          });
           setCurrentRoute({
             type: 'document',
             params: { filePath, fileName: slideName, fileType: 'pptx', readOnly: false },
           });
         } catch (e: any) {
-          Alert.alert('Error Creating Presentation', e.message);
+          SystemErrorService.reportError(e, 'Create Presentation');
         }
         break;
       }
@@ -161,13 +217,21 @@ function MainApp() {
             modifiedAt: Date.now(),
             isCloud: true,
           });
+          await ActiveDocumentStore.setActiveDocument({
+            name: file.name,
+            uri: dest,
+            type: docType,
+            size: file.size || 0,
+          });
 
-          Alert.alert(
-            'Cloud Upload Ready! ☁️',
-            `Selected "${file.name}" for Cloudinary Cloud Drive.\nDestination: wps_office/documents/${file.name}`
-          );
+          SystemErrorService.showNotification({
+            code: 'OPERATION_FAILED',
+            title: 'File Access Ready',
+            message: `Imported "${file.name}" into local document vault.`,
+            severity: 'success',
+          });
         } catch (e: any) {
-          Alert.alert('Upload Error', e.message);
+          SystemErrorService.reportError(e, 'Cloud Access');
         }
         break;
       }
@@ -178,73 +242,17 @@ function MainApp() {
     if (currentRoute.type === 'document') {
       const { fileName, filePath, fileType, readOnly } = currentRoute.params;
       return (
-        <View style={[styles.screenContent, { backgroundColor: theme.bg }]}>
-          {/* Top Document Bar */}
-          <View
-            style={[
-              styles.docTopBar,
-              {
-                backgroundColor: isDark ? '#121217' : '#FFFFFF',
-                borderBottomColor: theme.border,
-              },
-            ]}
-          >
-            <TouchableOpacity
-              style={styles.backBtn}
-              onPress={() => setCurrentRoute({ type: 'tab', tab: activeTab })}
-            >
-              <ArrowLeft size={22} color={theme.textPrimary} />
-            </TouchableOpacity>
-            <View style={styles.docTitleWrap}>
-              <Text style={[styles.docBarTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-                {fileName}
-              </Text>
-              <Text style={[styles.docBarSub, { color: theme.textMuted }]}>
-                {fileType.toUpperCase()} • {readOnly ? 'Read Only' : 'Viewing'}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.shareBtn}
-              onPress={() => Sharing.shareAsync(filePath)}
-            >
-              <Share2 size={20} color="#2563EB" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Document Preview Area */}
-          <View style={styles.docPreviewBody}>
-            <View
-              style={[
-                styles.docPreviewCard,
-                {
-                  backgroundColor: theme.surfaceCard,
-                  borderColor: theme.border,
-                },
-              ]}
-            >
-              <FormatBadge type={fileType} size="lg" showLabel={true} />
-              <Text style={[styles.docPreviewHeading, { color: theme.textPrimary }]}>
-                {fileName}
-              </Text>
-              <View style={styles.badgeRow}>
-                <View style={styles.readyBadge}>
-                  <CheckCircle2 size={13} color="#10B981" />
-                  <Text style={styles.readyBadgeText}>Verified Office Document</Text>
-                </View>
-              </View>
-              <Text style={[styles.docPreviewDesc, { color: theme.textMuted }]}>
-                Document loaded into memory on-device. Universal editor integration will activate in Milestones 3 & 4.
-              </Text>
-              <TouchableOpacity
-                style={styles.actionOpenBtn}
-                onPress={() => Sharing.shareAsync(filePath)}
-              >
-                <Share2 size={16} color="#FFFFFF" />
-                <Text style={styles.actionOpenText}>Export / Share Document</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+        <DocumentViewerScreen
+          filePath={filePath}
+          fileName={fileName}
+          fileType={fileType}
+          readOnly={readOnly}
+          onBack={() => setCurrentRoute({ type: 'tab', tab: activeTab })}
+          onLaunchTool={(toolId, file) => {
+            setActiveFile(file);
+            setSelectedToolId(toolId);
+          }}
+        />
       );
     }
 
@@ -318,6 +326,17 @@ function MainApp() {
     >
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
+      {/* Centralized Apple-Grade System Notification & Recovery Banner */}
+      <SystemNotificationBanner />
+
+      {/* TridentPDF Official Header Navbar */}
+      {currentRoute.type === 'tab' && (
+        <Header
+          onOpenSearch={() => setIsCommandPaletteOpen(true)}
+          onOpenDpdp={() => setIsDpdpOpen(true)}
+        />
+      )}
+
       {/* Main Screen Body */}
       <View style={[styles.screenContent, { backgroundColor: theme.bg }]}>
         {renderCurrentView()}
@@ -341,6 +360,22 @@ function MainApp() {
         visible={isActionMenuOpen}
         onClose={() => setIsActionMenuOpen(false)}
         onSelectAction={handleSelectAction}
+      />
+
+      {/* Global Command Palette Modal */}
+      <CommandPaletteModal
+        visible={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectTool={id => setSelectedToolId(id)}
+      />
+
+      {/* Global Tool Detail Modal (All 25 Tools + 94KB SEO Guide) */}
+      <ToolDetailModal
+        visible={!!selectedToolId}
+        toolId={selectedToolId}
+        onClose={() => setSelectedToolId(null)}
+        activeFile={activeFile}
+        onSelectActiveFile={setActiveFile}
       />
 
       {/* Global DPDP Modal */}

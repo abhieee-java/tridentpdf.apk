@@ -23,6 +23,10 @@ import {
 } from '../data/toolRegistry';
 import { AppTool, ToolCategory } from '../types';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Haptics from 'expo-haptics';
+import { FileAccessHubModal } from '../components/FileAccessHubModal';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import { SystemErrorService } from '../services/systemErrorService';
 import {
   Search,
   X,
@@ -86,40 +90,44 @@ export const ToolsHomeScreen: React.FC = () => {
   const [selectedToolId, setSelectedToolId] = useState<AppTool | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isDpdpModalOpen, setIsDpdpModalOpen] = useState(false);
+  const [isFileAccessHubOpen, setIsFileAccessHubOpen] = useState(false);
 
-  // Pick PDF Handler
-  const handlePickDocument = async () => {
+  React.useEffect(() => {
+    const unsub = ActiveDocumentStore.subscribe(doc => {
+      if (doc) {
+        setActiveFile({ name: doc.name, uri: doc.uri, size: doc.size });
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Pick PDF Handler: Launches native File Access Hub
+  const handlePickDocument = () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        copyToCacheDirectory: true,
-      });
-
-      if (res.canceled || !res.assets || res.assets.length === 0) return;
-
-      const file = res.assets[0];
-      setActiveFile({
-        name: file.name,
-        uri: file.uri,
-        size: file.size,
-      });
-    } catch (err: any) {
-      Alert.alert('File Picker', err.message || 'Failed to select PDF file');
-    }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    } catch {}
+    setIsFileAccessHubOpen(true);
   };
 
   // Generate Sample PDF Handler
   const handleCreateSampleDoc = async () => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       const uri = await PDFEngine.createSampleDocument('TridentPDF Demo Document');
-      setActiveFile({
+      await ActiveDocumentStore.setActiveDocument({
         name: 'TridentPDF_Sample.pdf',
         uri,
         size: 24500,
+        type: 'pdf',
       });
-      Alert.alert('Demo Ready! 📄', 'A verified sample PDF was loaded directly in local memory.');
+      SystemErrorService.showNotification({
+        code: 'OPERATION_FAILED',
+        title: 'Demo Ready! 📄',
+        message: 'A verified sample PDF was loaded directly in local memory.',
+        severity: 'success',
+      });
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to generate sample document');
+      SystemErrorService.reportError(err, 'Sample Generator');
     }
   };
 
@@ -413,6 +421,16 @@ export const ToolsHomeScreen: React.FC = () => {
       <DpdpComplianceModal
         visible={isDpdpModalOpen}
         onClose={() => setIsDpdpModalOpen(false)}
+      />
+
+      {/* NATIVE WPS FILE ACCESS HUB MODAL */}
+      <FileAccessHubModal
+        visible={isFileAccessHubOpen}
+        onClose={() => setIsFileAccessHubOpen(false)}
+        onSelectFile={file => {
+          setActiveFile(file);
+        }}
+        allowedExtensions={['pdf']}
       />
     </View>
   );

@@ -16,6 +16,9 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Print from 'expo-print';
+import * as Haptics from 'expo-haptics';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import {
   FileText,
   Images,
@@ -27,6 +30,7 @@ import {
   Layers,
   X,
 } from 'lucide-react-native';
+import { ToolsHomeScreen } from './ToolsHomeScreen';
 
 export interface DocumentRouteParams {
   filePath: string;
@@ -55,7 +59,8 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
   onOpenDocument,
   onNavigateToScanner,
 }) => {
-  const { theme } = useAppTheme();
+  const { theme, isDark } = useAppTheme();
+  const [viewMode, setViewMode] = useState<'studio' | 'office'>('studio');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
@@ -189,20 +194,16 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
       }
 
       setIsProcessing(false);
-      Alert.alert(
-        'Conversion Complete! 🎉',
-        `${file.name} was successfully converted to PDF.`,
-        [
-          { text: 'Done', style: 'cancel' },
-          {
-            text: 'Share / Save',
-            onPress: () => Sharing.shareAsync(pdfUri),
-          },
-        ]
-      );
+      await ActiveDocumentStore.registerToolOutput({
+        uri: pdfUri,
+        suggestedName: `${file.name.replace(/\.[^/.]+$/, '')}_converted.pdf`,
+        toolTag: '#converted',
+        successMessage: `${file.name} was successfully converted to PDF.`,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
       setIsProcessing(false);
-      Alert.alert('Office to PDF Failed', err.message);
+      SystemErrorService.reportError(err, 'Office to PDF');
     }
   };
 
@@ -224,17 +225,16 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
       const outputUri = await PDFEngine.imagesToPDF(uris);
 
       setIsProcessing(false);
-      Alert.alert(
-        'PDF Created! 📸',
-        `Successfully generated multi-page PDF from ${res.assets.length} images.`,
-        [
-          { text: 'Done', style: 'cancel' },
-          { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-        ]
-      );
+      await ActiveDocumentStore.registerToolOutput({
+        uri: outputUri,
+        suggestedName: `scanned_photos_${Date.now()}.pdf`,
+        toolTag: '#images-to-pdf',
+        successMessage: `Successfully generated multi-page PDF from ${res.assets.length} images.`,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
       setIsProcessing(false);
-      Alert.alert('Images to PDF Failed', err.message);
+      SystemErrorService.reportError(err, 'Images to PDF');
     }
   };
 
@@ -255,17 +255,16 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
       const result = await PDFEngine.compressPDF(file.uri);
 
       setIsProcessing(false);
-      Alert.alert(
-        'PDF Compressed! 🗜️',
-        `Optimized on-device.\nReduced by ${result.savingsPercent}%\nFrom ${(result.originalSize / 1024).toFixed(1)} KB to ${(result.compressedSize / 1024).toFixed(1)} KB.`,
-        [
-          { text: 'Done', style: 'cancel' },
-          { text: 'Share / Save', onPress: () => Sharing.shareAsync(result.outputUri) },
-        ]
-      );
+      await ActiveDocumentStore.registerToolOutput({
+        uri: result.outputUri,
+        suggestedName: `compressed_${file.name}`,
+        toolTag: '#compressed',
+        successMessage: `Optimized on-device. Saved ${result.savingsPercent}%.`,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
       setIsProcessing(false);
-      Alert.alert('Compress Failed', err.message);
+      SystemErrorService.reportError(err, 'PDF Compress');
     }
   };
 
@@ -280,7 +279,12 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
       });
 
       if (res.canceled || !res.assets || res.assets.length < 2) {
-        Alert.alert('Merge PDF', 'Please select at least 2 PDF documents to merge.');
+        SystemErrorService.showNotification({
+          code: 'INSUFFICIENT_FILES',
+          title: 'Merge PDF Requirement',
+          message: 'Please select at least 2 PDF documents to merge.',
+          severity: 'warning',
+        });
         return;
       }
 
@@ -291,17 +295,16 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
       const outputUri = await PDFEngine.mergePDFs(uris);
 
       setIsProcessing(false);
-      Alert.alert(
-        'Merge Succeeded! 📑',
-        `Combined ${res.assets.length} PDFs into a unified document.`,
-        [
-          { text: 'Done', style: 'cancel' },
-          { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-        ]
-      );
+      await ActiveDocumentStore.registerToolOutput({
+        uri: outputUri,
+        suggestedName: `merged_${Date.now()}.pdf`,
+        toolTag: '#merged',
+        successMessage: `Combined ${res.assets.length} PDFs into a unified document.`,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
       setIsProcessing(false);
-      Alert.alert('Merge Failed', err.message);
+      SystemErrorService.reportError(err, 'PDF Merge');
     }
   };
 
@@ -322,13 +325,16 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
       const outputUri = await PDFEngine.splitPDF(file.uri, [1]);
 
       setIsProcessing(false);
-      Alert.alert('Split Complete! ✂️', 'Page 1 extracted into a separate document.', [
-        { text: 'Done', style: 'cancel' },
-        { text: 'Share / Save', onPress: () => Sharing.shareAsync(outputUri) },
-      ]);
+      await ActiveDocumentStore.registerToolOutput({
+        uri: outputUri,
+        suggestedName: `split_${file.name}`,
+        toolTag: '#split',
+        successMessage: 'Page 1 extracted into a separate document.',
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
       setIsProcessing(false);
-      Alert.alert('Split Failed', err.message);
+      SystemErrorService.reportError(err, 'PDF Split');
     }
   };
 
@@ -388,7 +394,60 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+      {/* Top Segmented Mode Switcher */}
+      <View
+        style={[
+          styles.viewModeSwitcher,
+          {
+            backgroundColor: isDark ? '#14141E' : '#F1F5F9',
+            borderColor: theme.border,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={[
+            styles.modeTab,
+            viewMode === 'studio' && styles.modeTabActive,
+          ]}
+          onPress={() => setViewMode('studio')}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.modeTabText,
+              { color: isDark ? '#A1A1AA' : '#64748B' },
+              viewMode === 'studio' && styles.modeTabTextActive,
+            ]}
+          >
+            🔱 TridentPDF Studio (25 Tools)
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.modeTab,
+            viewMode === 'office' && styles.modeTabActive,
+          ]}
+          onPress={() => setViewMode('office')}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.modeTabText,
+              { color: isDark ? '#A1A1AA' : '#64748B' },
+              viewMode === 'office' && styles.modeTabTextActive,
+            ]}
+          >
+            ⚡ Office Utilities
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {viewMode === 'studio' ? (
+        <View style={{ flex: 1 }}>
+          <ToolsHomeScreen />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
         {/* Authentic WPS Tools Header Banner */}
         <View style={[styles.heroCard, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}>
           <View style={styles.heroHeader}>
@@ -481,6 +540,7 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
           })}
         </View>
       </ScrollView>
+      )}
 
       {/* Split / Merge Decision Modal */}
       <Modal visible={splitMergeModal} transparent animationType="fade">
@@ -544,6 +604,38 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  viewModeSwitcher: {
+    flexDirection: 'row',
+    marginHorizontal: 14,
+    marginTop: 8,
+    marginBottom: 4,
+    padding: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  modeTab: {
+    flex: 1,
+    paddingVertical: 7,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modeTabActive: {
+    backgroundColor: '#2563EB',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  modeTabText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modeTabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   content: {
     padding: 14,

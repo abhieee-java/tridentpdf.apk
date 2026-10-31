@@ -3,178 +3,437 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   Alert,
-  RefreshControl,
+  ActivityIndicator,
+  Share,
 } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
-import * as FileSystem from 'expo-file-system';
+import { PDFEngine } from '../services/pdfEngine';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import { DocumentStorageService } from '../services/documentStorage';
+import { FormatBadge, DocumentType } from '../components/FormatBadge';
+import { AppTool } from '../types';
 import * as Sharing from 'expo-sharing';
-import * as DocumentPicker from 'expo-document-picker';
-import { FileText, Share2, Trash2, Plus, HardDrive } from 'lucide-react-native';
+import * as Print from 'expo-print';
+import * as FileSystem from 'expo-file-system';
+import * as Haptics from 'expo-haptics';
+import {
+  ArrowLeft,
+  Share2,
+  Printer,
+  Trash2,
+  ShieldCheck,
+  FileText,
+  Clock,
+  Layers,
+  Sparkles,
+  Scissors,
+  Minimize2,
+  Lock,
+  Unlock,
+  PenTool,
+  RotateCw,
+  Crop,
+  EyeOff,
+  ScanText,
+  BrainCircuit,
+  CheckCircle2,
+} from 'lucide-react-native';
 
-interface LocalFile {
-  name: string;
-  uri: string;
-  size: number;
-  modificationTime: number;
+export interface DocumentViewerScreenProps {
+  filePath: string;
+  fileName: string;
+  fileType: DocumentType;
+  readOnly?: boolean;
+  onBack: () => void;
+  onLaunchTool: (toolId: AppTool, file: { name: string; uri: string; size?: number }) => void;
 }
 
-export const DocumentViewerScreen: React.FC = () => {
-  const { theme } = useAppTheme();
-  const [files, setFiles] = useState<LocalFile[]>([]);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+interface DocDetails {
+  pageCount: number;
+  fileSize: number;
+  title: string;
+  author: string;
+  hasDsc: boolean;
+}
 
-  const loadLocalFiles = async () => {
-    try {
-      if (!FileSystem.documentDirectory) return;
-      const fileNames = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory);
-      const pdfFiles: LocalFile[] = [];
+export const DocumentViewerScreen: React.FC<DocumentViewerScreenProps> = ({
+  filePath,
+  fileName,
+  fileType,
+  readOnly,
+  onBack,
+  onLaunchTool,
+}) => {
+  const { theme, isDark } = useAppTheme();
 
-      for (const name of fileNames) {
-        if (name.toLowerCase().endsWith('.pdf')) {
-          const fileUri = `${FileSystem.documentDirectory}${name}`;
-          const info = await FileSystem.getInfoAsync(fileUri);
-          if (info.exists) {
-            pdfFiles.push({
-              name,
-              uri: fileUri,
-              size: (info as any).size || 0,
-              modificationTime: (info as any).modificationTime || Date.now(),
-            });
-          }
-        }
-      }
-
-      pdfFiles.sort((a, b) => b.modificationTime - a.modificationTime);
-      setFiles(pdfFiles);
-    } catch (e) {
-      console.log('Error reading documents:', e);
-    }
-  };
+  const [details, setDetails] = useState<DocDetails>({
+    pageCount: 1,
+    fileSize: 0,
+    title: fileName,
+    author: 'Local Device',
+    hasDsc: false,
+  });
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    loadLocalFiles();
-  }, []);
+    let isMounted = true;
+    async function inspect() {
+      try {
+        setLoading(true);
+        const info = await FileSystem.getInfoAsync(filePath);
+        const size = (info as any).size || 0;
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadLocalFiles();
-    setRefreshing(false);
-  };
+        let pages = 1;
+        let title = fileName;
+        let author = 'Local Author';
+        let hasDsc = false;
 
-  const handleShare = async (uri: string) => {
-    try {
-      await Sharing.shareAsync(uri);
-    } catch (err: any) {
-      Alert.alert('Share Error', err.message);
-    }
-  };
+        if (fileType === 'pdf') {
+          try {
+            const inspected = await PDFEngine.inspectPDF(filePath);
+            pages = inspected.pageCount || 1;
+            title = inspected.title || fileName;
+            author = inspected.author || 'Local Author';
 
-  const handleDelete = (file: LocalFile) => {
-    Alert.alert('Delete Document', `Are you sure you want to delete ${file.name}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await FileSystem.deleteAsync(file.uri);
-          loadLocalFiles();
-        },
-      },
-    ]);
-  };
+            const bytes = await PDFEngine.loadBytesFromUri(filePath);
+            const dscInfo = PDFEngine.detectDigitalSignature(bytes);
+            hasDsc = dscInfo.isDigitallySigned;
+          } catch {}
+        }
 
-  const handleImport = async () => {
-    try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        copyToCacheDirectory: true,
-      });
+        if (isMounted) {
+          setDetails({
+            pageCount: pages,
+            fileSize: size,
+            title,
+            author,
+            hasDsc,
+          });
 
-      if (!res.canceled && res.assets && res.assets.length > 0) {
-        const asset = res.assets[0];
-        const dest = `${FileSystem.documentDirectory}${asset.name}`;
-        await FileSystem.copyAsync({ from: asset.uri, to: dest });
-        loadLocalFiles();
-        Alert.alert('Imported!', `${asset.name} saved to local documents.`);
+          // Sync into activeDocumentStore
+          ActiveDocumentStore.setActiveDocument({
+            name: fileName,
+            uri: filePath,
+            size,
+            type: fileType,
+            pageCount: pages,
+          });
+        }
+      } catch (err) {
+        SystemErrorService.reportError(err, 'Document Inspector');
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    } catch (err: any) {
-      Alert.alert('Import Error', err.message);
     }
-  };
 
-  const formatBytes = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
+    inspect();
+    return () => {
+      isMounted = false;
+    };
+  }, [filePath, fileName, fileType]);
+
+  const formatFileSize = (bytes: number): string => {
+    if (!bytes || bytes <= 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
   };
 
+  const handleShare = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const available = await Sharing.isAvailableAsync();
+      if (available) {
+        await Sharing.shareAsync(filePath);
+      } else {
+        await Share.share({ url: filePath, title: fileName });
+      }
+    } catch (err: any) {
+      SystemErrorService.reportError(err, 'Share Document');
+    }
+  };
+
+  const handlePrint = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      if (fileType === 'pdf') {
+        await Print.printAsync({ uri: filePath });
+      } else {
+        const content = await FileSystem.readAsStringAsync(filePath);
+        await Print.printAsync({
+          html: `<html><body><pre>${content}</pre></body></html>`,
+        });
+      }
+    } catch (err: any) {
+      SystemErrorService.reportError(err, 'Print Document');
+    }
+  };
+
+  const handleDelete = () => {
+    Alert.alert('Delete Document', `Are you sure you want to permanently delete "${fileName}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await FileSystem.deleteAsync(filePath, { idempotent: true });
+            await DocumentStorageService.removeDocument(`local_${fileName}`);
+            ActiveDocumentStore.clearActiveDocument();
+            SystemErrorService.showNotification({
+              code: 'OPERATION_FAILED',
+              title: 'Document Deleted',
+              message: `"${fileName}" removed from local storage.`,
+              severity: 'info',
+            });
+            onBack();
+          } catch (err: any) {
+            SystemErrorService.reportError(err, 'Delete Document');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleToolAction = (toolId: AppTool) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    } catch {}
+    onLaunchTool(toolId, {
+      name: fileName,
+      uri: filePath,
+      size: details.fileSize,
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
-      {/* Top Storage Bar */}
-      <View style={[styles.storageCard, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <HardDrive size={20} color="#3B82F6" />
-          <View>
-            <Text style={[styles.storageTitle, { color: theme.textPrimary }]}>Device Local Vault</Text>
-            <Text style={[styles.storageSub, { color: theme.textSecondary }]}>
-              {files.length} document{files.length !== 1 ? 's' : ''} stored safely on device
+      {/* Top Navbar */}
+      <View
+        style={[
+          styles.topBar,
+          {
+            backgroundColor: isDark ? '#121217' : '#FFFFFF',
+            borderBottomColor: theme.border,
+          },
+        ]}
+      >
+        <TouchableOpacity style={styles.backBtn} onPress={onBack}>
+          <ArrowLeft size={22} color={theme.textPrimary} />
+        </TouchableOpacity>
+
+        <View style={styles.topBarTitleWrap}>
+          <Text style={[styles.topBarTitle, { color: theme.textPrimary }]} numberOfLines={1}>
+            {fileName}
+          </Text>
+          <Text style={[styles.topBarSubtitle, { color: theme.textMuted }]}>
+            {fileType.toUpperCase()} • {details.pageCount} {details.pageCount === 1 ? 'Page' : 'Pages'} •{' '}
+            {formatFileSize(details.fileSize)}
+          </Text>
+        </View>
+
+        <View style={styles.topBarActions}>
+          <TouchableOpacity style={styles.iconBtn} onPress={handleShare}>
+            <Share2 size={20} color="#2563EB" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn} onPress={handlePrint}>
+            <Printer size={20} color={theme.textPrimary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn} onPress={handleDelete}>
+            <Trash2 size={20} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Document Hero Card */}
+        <View
+          style={[
+            styles.heroCard,
+            {
+              backgroundColor: theme.surfaceCard,
+              borderColor: theme.border,
+            },
+          ]}
+        >
+          <FormatBadge type={fileType} size="lg" showLabel={true} />
+
+          <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>{fileName}</Text>
+
+          <View style={styles.metaRow}>
+            <View style={styles.metaChip}>
+              <Layers size={13} color="#2563EB" />
+              <Text style={styles.metaChipText}>{details.pageCount} Pages</Text>
+            </View>
+
+            <View style={styles.metaChip}>
+              <FileText size={13} color="#10B981" />
+              <Text style={styles.metaChipText}>{formatFileSize(details.fileSize)}</Text>
+            </View>
+
+            {details.hasDsc && (
+              <View style={[styles.metaChip, { backgroundColor: '#FEE2E2' }]}>
+                <ShieldCheck size={13} color="#EF4444" />
+                <Text style={[styles.metaChipText, { color: '#EF4444' }]}>DSC Signed</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Privacy Guarantee Badge */}
+          <View
+            style={[
+              styles.privacyBadge,
+              {
+                backgroundColor: isDark ? '#13281E' : '#ECFDF5',
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0',
+              },
+            ]}
+          >
+            <CheckCircle2 size={14} color="#10B981" />
+            <Text style={[styles.privacyBadgeText, { color: isDark ? '#34D399' : '#065F46' }]}>
+              100% Local Device Isolation • 1-Hour Session TTL
             </Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.importBtn} onPress={handleImport}>
-          <Plus size={16} color="#FFF" />
-          <Text style={styles.importBtnText}>Import</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Quick Tools Studio Section */}
+        <View style={styles.toolsSection}>
+          <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
+            PDF Studio Quick Actions
+          </Text>
+          <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+            Execute any of the 25 TridentPDF offline operations directly on this document:
+          </Text>
 
-      {/* Files List */}
-      <FlatList
-        data={files}
-        keyExtractor={item => item.uri}
-        contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <FileText size={48} color={theme.textMuted} />
-            <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No local documents yet</Text>
-            <Text style={[styles.emptySub, { color: theme.textSecondary }]}>
-              Processed files from Merging, Scanning, and Signing will appear here automatically.
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <View style={[styles.fileCard, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}>
-            <View style={styles.fileLeft}>
-              <View style={styles.pdfIconBadge}>
-                <Text style={styles.pdfIconText}>PDF</Text>
+          <View style={styles.toolsGrid}>
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('split')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#EFF6FF' }]}>
+                <Scissors size={20} color="#2563EB" />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.fileName, { color: theme.textPrimary }]} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={[styles.fileMeta, { color: theme.textSecondary }]}>
-                  {formatBytes(item.size)} • {new Date(item.modificationTime).toLocaleDateString()}
-                </Text>
-              </View>
-            </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Split Pages</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Extract range</Text>
+            </TouchableOpacity>
 
-            <View style={styles.fileActions}>
-              <TouchableOpacity style={styles.actionIconBtn} onPress={() => handleShare(item.uri)}>
-                <Share2 size={18} color="#3B82F6" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionIconBtn} onPress={() => handleDelete(item)}>
-                <Trash2 size={18} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('merge')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#F3E8FF' }]}>
+                <Layers size={20} color="#9333EA" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Merge PDFs</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Combine files</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('compress')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#FEF3C7' }]}>
+                <Minimize2 size={20} color="#D97706" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Compress</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Reduce size</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('watermark')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#ECFDF5' }]}>
+                <Sparkles size={20} color="#059669" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Watermark</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Protect brand</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('organize')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#EFF6FF' }]}>
+                <RotateCw size={20} color="#2563EB" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Rotate Pages</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>90° / 180°</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('sign-fill')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#FDF2F8' }]}>
+                <PenTool size={20} color="#DB2777" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Sign & Fill</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Add signature</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('security')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#FEF2F2' }]}>
+                <Lock size={20} color="#DC2626" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Security</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>AES-256 Lock</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('crop')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#F0FDF4' }]}>
+                <Crop size={20} color="#16A34A" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Crop/Resize</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>A4, Letter, A3</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('ocr')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#F5F3FF' }]}>
+                <ScanText size={20} color="#7C3AED" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>OCR Engine</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Extract text</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('ai-summarize')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#EFF6FF' }]}>
+                <BrainCircuit size={20} color="#2563EB" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>AI Summary</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Executive brief</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toolActionTile, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}
+              onPress={() => handleToolAction('redact')}
+            >
+              <View style={[styles.toolTileIcon, { backgroundColor: '#F1F5F9' }]}>
+                <EyeOff size={20} color="#475569" />
+              </View>
+              <Text style={[styles.toolTileTitle, { color: theme.textPrimary }]}>Redact PII</Text>
+              <Text style={[styles.toolTileSub, { color: theme.textMuted }]}>Blackout data</Text>
+            </TouchableOpacity>
           </View>
-        )}
-      />
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -182,102 +441,127 @@ export const DocumentViewerScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
   },
-  storageCard: {
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    gap: 12,
   },
-  storageTitle: {
+  backBtn: {
+    padding: 4,
+  },
+  topBarTitleWrap: {
+    flex: 1,
+  },
+  topBarTitle: {
     fontSize: 15,
     fontWeight: '700',
   },
-  storageSub: {
-    fontSize: 12,
+  topBarSubtitle: {
+    fontSize: 11,
     marginTop: 2,
   },
-  importBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-  importBtnText: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  listContent: {
-    paddingBottom: 24,
-  },
-  fileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  fileLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  pdfIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pdfIconText: {
-    color: '#EF4444',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  fileName: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  fileMeta: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  fileActions: {
+  topBarActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  actionIconBtn: {
-    padding: 8,
+  iconBtn: {
+    padding: 6,
     borderRadius: 8,
   },
-  emptyContainer: {
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
+    gap: 20,
+  },
+  heroCard: {
+    padding: 24,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 14,
+  },
+  heroTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  metaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  metaChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  privacyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  privacyBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  toolsSection: {
+    gap: 8,
+  },
+  sectionHeading: {
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    marginBottom: 8,
+  },
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  toolActionTile: {
+    width: '48%',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    gap: 6,
+  },
+  toolTileIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 24,
-    gap: 12,
+    marginBottom: 4,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 8,
-  },
-  emptySub: {
+  toolTileTitle: {
     fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
+    fontWeight: '700',
+  },
+  toolTileSub: {
+    fontSize: 11,
   },
 });
