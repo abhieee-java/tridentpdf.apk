@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   PanResponder,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useAppTheme } from '../theme/ThemeContext';
-import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
+import * as Haptics from 'expo-haptics';
 import { PDFEngine } from '../services/pdfEngine';
-import { Trash2, Check, FileUp, PenTool } from 'lucide-react-native';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import { FileAccessHubModal } from '../components/FileAccessHubModal';
+import { Trash2, Check, FileUp, PenTool, ShieldCheck } from 'lucide-react-native';
 
 export const SignAndFillScreen: React.FC = () => {
   const { theme } = useAppTheme();
@@ -23,8 +25,20 @@ export const SignAndFillScreen: React.FC = () => {
   const [selectedPDFUri, setSelectedPDFUri] = useState<string | null>(null);
   const [selectedPDFName, setSelectedPDFName] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isFileHubOpen, setIsFileHubOpen] = useState<boolean>(false);
 
   const colors = ['#0F172A', '#1E40AF', '#047857', '#B91C1C'];
+
+  // Subscribe to ActiveDocumentStore for seamless store integration
+  useEffect(() => {
+    const unsub = ActiveDocumentStore.subscribe(doc => {
+      if (doc && doc.type === 'pdf') {
+        setSelectedPDFUri(doc.uri);
+        setSelectedPDFName(doc.name);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // Pan Responder for smooth drawing
   const panResponder = PanResponder.create({
@@ -46,33 +60,37 @@ export const SignAndFillScreen: React.FC = () => {
     },
   });
 
-  const handlePickDocument = async () => {
+  const handlePickDocument = () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        copyToCacheDirectory: true,
-      });
-
-      if (!res.canceled && res.assets && res.assets.length > 0) {
-        setSelectedPDFUri(res.assets[0].uri);
-        setSelectedPDFName(res.assets[0].name);
-      }
-    } catch (err: any) {
-      Alert.alert('File Picker Error', err.message);
-    }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    } catch {}
+    setIsFileHubOpen(true);
   };
 
   const handleApplySignature = async () => {
     if (!selectedPDFUri) {
-      Alert.alert('Select Document', 'Please pick a PDF document to sign first.');
+      SystemErrorService.showNotification({
+        code: 'INSUFFICIENT_FILES',
+        title: 'Document Required',
+        message: 'Please pick a PDF document to sign from your workspace.',
+        severity: 'warning',
+        actionLabel: 'Select PDF',
+        onAction: () => setIsFileHubOpen(true),
+      });
       return;
     }
     if (paths.length === 0) {
-      Alert.alert('Signature Required', 'Please draw your signature in the box.');
+      SystemErrorService.showNotification({
+        code: 'OPERATION_FAILED',
+        title: 'Signature Required',
+        message: 'Please draw your signature in the canvas box below.',
+        severity: 'warning',
+      });
       return;
     }
 
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       setIsProcessing(true);
       // Transparent placeholder base64 png stamp for demonstration signature embedding
       const samplePngBase64 =
@@ -86,17 +104,16 @@ export const SignAndFillScreen: React.FC = () => {
       );
 
       setIsProcessing(false);
-      Alert.alert(
-        'Document Signed! ✍️',
-        `Signature verified and stamped on page 1 of ${selectedPDFName}.`,
-        [
-          { text: 'Clear', onPress: () => { setPaths([]); setSelectedPDFUri(null); } },
-          { text: 'Share / Export', onPress: () => Sharing.shareAsync(signedUri) },
-        ]
-      );
+      await ActiveDocumentStore.registerToolOutput({
+        uri: signedUri,
+        suggestedName: `signed_${selectedPDFName || 'document.pdf'}`,
+        toolTag: '#signed',
+        successMessage: `Signature verified and stamped on page 1 of ${selectedPDFName}.`,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
       setIsProcessing(false);
-      Alert.alert('Signing Error', err.message);
+      SystemErrorService.reportError(err, 'Sign & Fill');
     }
   };
 
@@ -186,6 +203,17 @@ export const SignAndFillScreen: React.FC = () => {
           </>
         )}
       </TouchableOpacity>
+
+      {/* Native File Access Hub Modal */}
+      <FileAccessHubModal
+        visible={isFileHubOpen}
+        onClose={() => setIsFileHubOpen(false)}
+        onSelectFile={file => {
+          setSelectedPDFUri(file.uri);
+          setSelectedPDFName(file.name);
+        }}
+        allowedExtensions={['pdf']}
+      />
     </View>
   );
 };

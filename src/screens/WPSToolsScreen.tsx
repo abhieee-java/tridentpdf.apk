@@ -343,30 +343,21 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
     if (onNavigateToScanner) {
       onNavigateToScanner();
     } else {
-      Alert.alert(
-        'Document Scanner',
-        'Launch camera scanner with auto-edge framing.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Capture Photo',
-            onPress: async () => {
-              try {
-                const photo = await ImagePicker.launchCameraAsync({ quality: 0.9 });
-                if (!photo.canceled && photo.assets) {
-                  const pdfUri = await PDFEngine.imagesToPDF([photo.assets[0].uri]);
-                  Alert.alert('Scan Compiled! 📄', 'Saved as scanned PDF.', [
-                    { text: 'OK' },
-                    { text: 'Share', onPress: () => Sharing.shareAsync(pdfUri) },
-                  ]);
-                }
-              } catch (err: any) {
-                Alert.alert('Camera Error', err.message);
-              }
-            },
-          },
-        ]
-      );
+      ImagePicker.launchCameraAsync({ quality: 0.9 })
+        .then(async photo => {
+          if (!photo.canceled && photo.assets && photo.assets.length > 0) {
+            const pdfUri = await PDFEngine.imagesToPDF([photo.assets[0].uri]);
+            await ActiveDocumentStore.registerToolOutput({
+              uri: pdfUri,
+              suggestedName: `scanned_${Date.now()}.pdf`,
+              toolTag: '#scanned',
+              successMessage: 'Document scanned and compiled into PDF.',
+            });
+          }
+        })
+        .catch(err => {
+          SystemErrorService.reportError(err, 'Camera Scanner');
+        });
     }
   };
 

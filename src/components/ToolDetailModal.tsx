@@ -157,6 +157,14 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
   const seoPath = getPrimaryPathForTool(toolId);
   const seoConfig: SeoPageConfig = getSeoConfigByPath(seoPath);
 
+  // Determine allowed file extensions dynamically based on active tool
+  const getAllowedExtensions = (): string[] | undefined => {
+    if (!toolId) return undefined;
+    if (toolId === 'compress-jpg') return ['jpg', 'jpeg', 'png', 'webp'];
+    if (toolId === 'convert') return ['pdf', 'docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt', 'txt', 'csv', 'jpg', 'jpeg', 'png'];
+    return ['pdf'];
+  };
+
   // File Picker Helper: Launches native WPS File Access Hub
   const pickDocument = () => {
     try {
@@ -1075,7 +1083,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
             setMergeFiles(prev => [...prev, file]);
           }
         }}
-        allowedExtensions={['pdf']}
+        allowedExtensions={getAllowedExtensions()}
       />
     </Modal>
   );

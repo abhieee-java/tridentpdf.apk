@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 import * as FileSystem from 'expo-file-system';
+import { SystemErrorService } from '../services/systemErrorService';
+import * as Haptics from 'expo-haptics';
 import {
   Moon,
   Sun,
@@ -26,15 +28,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handleClearCache = async () => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       if (FileSystem.cacheDirectory) {
         const files = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory);
         for (const file of files) {
           await FileSystem.deleteAsync(`${FileSystem.cacheDirectory}${file}`, { idempotent: true });
         }
       }
-      Alert.alert('Cache Cleared', 'Temporary image and document caches have been sanitized.');
+      SystemErrorService.showNotification({
+        code: 'OPERATION_SUCCESS',
+        title: 'Cache Sanitized',
+        message: 'Temporary document and image caches have been cleared from device memory.',
+        severity: 'success',
+      });
     } catch (e: any) {
-      Alert.alert('Error', e.message);
+      SystemErrorService.reportError(e, 'Cache Cleaner');
     }
   };
 
@@ -42,10 +50,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     if (onNavigateCloudSettings) {
       onNavigateCloudSettings();
     } else {
-      Alert.alert(
-        'Cloud Storage',
-        'Personal Cloudinary Cloud Storage configuration is scheduled for Milestone 2.'
-      );
+      SystemErrorService.showNotification({
+        code: 'OPERATION_SUCCESS',
+        title: 'Local Privacy Mode Active',
+        message: 'TridentPDF is currently operating in 100% local device mode with zero cloud uploads.',
+        severity: 'info',
+      });
     }
   };
 

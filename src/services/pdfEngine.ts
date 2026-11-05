@@ -340,6 +340,8 @@ export class PDFEngine {
     const bytes = await this.loadBytesFromUri(uri);
     const originalSize = bytes.byteLength;
 
+    const dscInfo = this.detectDigitalSignature(bytes);
+
     const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
 
     if (preset === 'extreme') {
@@ -352,8 +354,22 @@ export class PDFEngine {
     }
 
     const compressedBytes = await this.savePdfUniversally(doc);
-    const outputUri = await this.saveBytesToFile(compressedBytes, `compressed_${preset}`);
-    const compressedSize = compressedBytes.byteLength;
+
+    // Anti-bloat protection: if compressed version is >= original size and source was already universally compliant, preserve source
+    let finalBytes = compressedBytes;
+    if (compressedBytes.byteLength >= originalSize) {
+      const scanLimit = Math.min(bytes.byteLength, 65536);
+      let bin = '';
+      for (let i = 0; i < scanLimit; i++) bin += String.fromCharCode(bytes[i]);
+      const hasObjStm = /\/ObjStm\b/i.test(bin);
+      const hasId = /\/ID\s*\[/i.test(bin);
+      if (hasId && !hasObjStm) {
+        finalBytes = bytes;
+      }
+    }
+
+    const outputUri = await this.saveBytesToFile(finalBytes, `compressed_${preset}`);
+    const compressedSize = finalBytes.byteLength;
     const savingsPercent = Math.max(0, Math.round(((originalSize - compressedSize) / originalSize) * 100));
 
     return {

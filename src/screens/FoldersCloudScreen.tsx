@@ -205,7 +205,7 @@ export const FoldersCloudScreen: React.FC<FoldersCloudScreenProps> = ({
       });
 
       SystemErrorService.showNotification({
-        code: 'OPERATION_FAILED',
+        code: 'DOCUMENT_READY',
         title: 'Imported to Vault',
         message: `${file.name} saved safely to local storage.`,
         severity: 'success',
@@ -304,11 +304,16 @@ export const FoldersCloudScreen: React.FC<FoldersCloudScreenProps> = ({
       });
 
       setIsLoading(false);
-      Alert.alert('Download Complete', `${item.fileName} downloaded to Phone Storage.`);
+      SystemErrorService.showNotification({
+        code: 'OPERATION_SUCCESS',
+        title: 'Download Complete',
+        message: `${item.fileName} downloaded to Phone Storage.`,
+        severity: 'success',
+      });
       scanLocalFiles();
     } catch (err: any) {
       setIsLoading(false);
-      Alert.alert('Download Failed', err.message);
+      SystemErrorService.reportError(err, 'Cloud Download');
     }
   };
 

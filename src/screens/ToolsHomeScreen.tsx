@@ -94,9 +94,7 @@ export const ToolsHomeScreen: React.FC = () => {
 
   React.useEffect(() => {
     const unsub = ActiveDocumentStore.subscribe(doc => {
-      if (doc) {
-        setActiveFile({ name: doc.name, uri: doc.uri, size: doc.size });
-      }
+      setActiveFile(doc ? { name: doc.name, uri: doc.uri, size: doc.size } : null);
     });
     return () => unsub();
   }, []);
@@ -121,7 +119,7 @@ export const ToolsHomeScreen: React.FC = () => {
         type: 'pdf',
       });
       SystemErrorService.showNotification({
-        code: 'OPERATION_FAILED',
+        code: 'DOCUMENT_READY',
         title: 'Demo Ready! 📄',
         message: 'A verified sample PDF was loaded directly in local memory.',
         severity: 'success',
@@ -191,7 +189,13 @@ export const ToolsHomeScreen: React.FC = () => {
 
                 <TouchableOpacity
                   style={styles.clearBtn}
-                  onPress={() => setActiveFile(null)}
+                  onPress={() => {
+                    try {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                    } catch {}
+                    ActiveDocumentStore.clearActiveDocument();
+                    setActiveFile(null);
+                  }}
                   activeOpacity={0.8}
                 >
                   <Trash2 size={12} color="#FFFFFF" />

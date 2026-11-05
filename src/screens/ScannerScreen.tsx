@@ -6,14 +6,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as Sharing from 'expo-sharing';
+import * as Haptics from 'expo-haptics';
 import { PDFEngine } from '../services/pdfEngine';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import { Camera, RefreshCw, Trash2, CheckCircle, Image as ImageIcon } from 'lucide-react-native';
 
 export const ScannerScreen: React.FC = () => {
@@ -48,6 +50,7 @@ export const ScannerScreen: React.FC = () => {
   const handleCapture = async () => {
     if (!cameraRef.current) return;
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.85,
         skipProcessing: false,
@@ -56,12 +59,13 @@ export const ScannerScreen: React.FC = () => {
         setScannedImages(prev => [...prev, photo.uri]);
       }
     } catch (err: any) {
-      Alert.alert('Capture Failed', err.message);
+      SystemErrorService.reportError(err, 'Camera Capture');
     }
   };
 
   const handlePickFromGallery = async () => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
@@ -73,31 +77,29 @@ export const ScannerScreen: React.FC = () => {
         setScannedImages(prev => [...prev, ...uris]);
       }
     } catch (err: any) {
-      Alert.alert('Gallery Error', err.message);
+      SystemErrorService.reportError(err, 'Gallery Import');
     }
   };
 
   const handleGeneratePDF = async () => {
     if (scannedImages.length === 0) return;
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       setIsProcessing(true);
       const pdfUri = await PDFEngine.imagesToPDF(scannedImages);
       setIsProcessing(false);
 
-      Alert.alert(
-        'Scan Compiled! 📄',
-        `Successfully generated multi-page PDF (${scannedImages.length} pages).`,
-        [
-          { text: 'Clear & New Scan', onPress: () => setScannedImages([]) },
-          {
-            text: 'Share / Save PDF',
-            onPress: () => Sharing.shareAsync(pdfUri),
-          },
-        ]
-      );
+      await ActiveDocumentStore.registerToolOutput({
+        uri: pdfUri,
+        suggestedName: `scanned_doc_${Date.now()}.pdf`,
+        toolTag: '#scanned',
+        successMessage: `Compiled ${scannedImages.length}-page document into verified PDF.`,
+      });
+      setScannedImages([]);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err: any) {
       setIsProcessing(false);
-      Alert.alert('Compilation Error', err.message);
+      SystemErrorService.reportError(err, 'PDF Compilation');
     }
   };
 

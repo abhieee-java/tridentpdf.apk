@@ -19,6 +19,7 @@ export interface ActiveDocumentState {
   expiresAt: number;
   tags?: string[];
   isStarred?: boolean;
+  isDigitallySigned?: boolean;
   metadata?: {
     title?: string;
     author?: string;
@@ -74,6 +75,7 @@ class ActiveDocumentManager {
     let pageCount = doc.pageCount;
     let meta: ActiveDocumentState['metadata'] = undefined;
     let fileSize = doc.size || 0;
+    let isDigitallySigned = false;
 
     // If PDF and missing pageCount/fileSize, inspect locally
     if (docType === 'pdf') {
@@ -87,6 +89,8 @@ class ActiveDocumentManager {
           subject: inspected.subject,
           creator: inspected.creator,
         };
+        const bytes = await PDFEngine.loadBytesFromUri(doc.uri);
+        isDigitallySigned = PDFEngine.detectDigitalSignature(bytes).isDigitallySigned;
       } catch (err) {
         // PDF could be protected or plain template
       }
@@ -102,6 +106,7 @@ class ActiveDocumentManager {
       modifiedAt: now,
       loadedAt: now,
       expiresAt: now + ACTIVE_DOCUMENT_TTL_MS,
+      isDigitallySigned,
       metadata: meta,
     };
 
@@ -154,6 +159,7 @@ class ActiveDocumentManager {
     let pageCount: number | undefined;
     let fileSize = 0;
     let meta: ActiveDocumentState['metadata'] = undefined;
+    let isDigitallySigned = false;
 
     if (docType === 'pdf') {
       try {
@@ -165,6 +171,8 @@ class ActiveDocumentManager {
           author: inspected.author,
           subject: inspected.subject,
         };
+        const bytes = await PDFEngine.loadBytesFromUri(params.uri);
+        isDigitallySigned = PDFEngine.detectDigitalSignature(bytes).isDigitallySigned;
       } catch {}
     }
 
@@ -180,6 +188,7 @@ class ActiveDocumentManager {
       loadedAt: now,
       expiresAt: now + ACTIVE_DOCUMENT_TTL_MS,
       tags: [params.toolTag],
+      isDigitallySigned,
       metadata: meta,
     };
 
@@ -199,7 +208,7 @@ class ActiveDocumentManager {
 
     // Trigger centralized unified system notification
     SystemErrorService.showNotification({
-      code: 'OPERATION_FAILED',
+      code: 'OPERATION_SUCCESS',
       title: 'Document Saved',
       message: params.successMessage,
       severity: 'success',

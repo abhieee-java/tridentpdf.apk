@@ -147,7 +147,7 @@ export const RecentFilesScreen: React.FC<RecentFilesScreenProps> = ({ onOpenDocu
       });
 
       SystemErrorService.showNotification({
-        code: 'OPERATION_FAILED',
+        code: 'DOCUMENT_READY',
         title: 'Document Ready',
         message: `Imported "${file.name}" into local workspace.`,
         severity: 'success',

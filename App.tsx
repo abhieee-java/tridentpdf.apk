@@ -61,9 +61,7 @@ function MainApp() {
 
   useEffect(() => {
     const unsub = ActiveDocumentStore.subscribe(doc => {
-      if (doc) {
-        setActiveFile({ name: doc.name, uri: doc.uri, size: doc.size });
-      }
+      setActiveFile(doc ? { name: doc.name, uri: doc.uri, size: doc.size } : null);
     });
     return () => unsub();
   }, []);
@@ -101,7 +99,7 @@ function MainApp() {
             size: 1024,
           });
           SystemErrorService.showNotification({
-            code: 'OPERATION_FAILED',
+            code: 'OPERATION_SUCCESS',
             title: 'Document Created',
             message: `Created "${docName}" locally in workspace.`,
             severity: 'success',
@@ -139,7 +137,7 @@ function MainApp() {
             size: 1024,
           });
           SystemErrorService.showNotification({
-            code: 'OPERATION_FAILED',
+            code: 'OPERATION_SUCCESS',
             title: 'Spreadsheet Created',
             message: `Created "${sheetName}" locally in workspace.`,
             severity: 'success',
@@ -177,7 +175,7 @@ function MainApp() {
             size: 1024,
           });
           SystemErrorService.showNotification({
-            code: 'OPERATION_FAILED',
+            code: 'OPERATION_SUCCESS',
             title: 'Presentation Created',
             message: `Created "${slideName}" locally in workspace.`,
             severity: 'success',
@@ -225,7 +223,7 @@ function MainApp() {
           });
 
           SystemErrorService.showNotification({
-            code: 'OPERATION_FAILED',
+            code: 'DOCUMENT_READY',
             title: 'File Access Ready',
             message: `Imported "${file.name}" into local document vault.`,
             severity: 'success',

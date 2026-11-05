@@ -108,9 +108,14 @@ export const FileAccessHubModal: React.FC<FileAccessHubModalProps> = ({
   const handleImportSystemFile = async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-      const mimeTypes = allowedExtensions?.includes('pdf')
-        ? ['application/pdf']
-        : ['*/*'];
+      let mimeTypes: string[] = ['*/*'];
+      if (allowedExtensions && allowedExtensions.length > 0) {
+        if (allowedExtensions.every(ext => ['pdf'].includes(ext))) {
+          mimeTypes = ['application/pdf'];
+        } else if (allowedExtensions.every(ext => ['jpg', 'jpeg', 'png', 'webp'].includes(ext))) {
+          mimeTypes = ['image/*'];
+        }
+      }
 
       const res = await DocumentPicker.getDocumentAsync({
         type: mimeTypes,
@@ -140,7 +145,7 @@ export const FileAccessHubModal: React.FC<FileAccessHubModalProps> = ({
       });
 
       SystemErrorService.showNotification({
-        code: 'OPERATION_FAILED',
+        code: 'DOCUMENT_READY',
         title: 'Document Ready',
         message: `Imported "${asset.name}" into local workspace.`,
         severity: 'success',
@@ -182,7 +187,7 @@ export const FileAccessHubModal: React.FC<FileAccessHubModalProps> = ({
       });
 
       SystemErrorService.showNotification({
-        code: 'OPERATION_FAILED',
+        code: 'DOCUMENT_READY',
         title: 'Sample PDF Ready',
         message: 'Loaded verified sample PDF with standard ISO 32000-1 structure.',
         severity: 'success',

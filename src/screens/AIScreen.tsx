@@ -7,11 +7,13 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 import { AIAssistantService, PIIItem } from '../services/aiAssistantService';
-import { Bot, Send, ShieldAlert, FileText, CheckCircle2 } from 'lucide-react-native';
+import { SystemErrorService } from '../services/systemErrorService';
+import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import * as Haptics from 'expo-haptics';
+import { Bot, Send, ShieldAlert, FileText, CheckCircle2, Sparkles } from 'lucide-react-native';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -38,6 +40,7 @@ export const AIScreen: React.FC = () => {
     redactedText: string;
     detections: PIIItem[];
   } | null>(null);
+  const [summaryText, setSummaryText] = useState<string | null>(null);
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
@@ -189,15 +192,40 @@ export const AIScreen: React.FC = () => {
 
           <TouchableOpacity
             style={styles.actionBtn}
-            onPress={() => {
-              Alert.alert(
-                'Summary Generated',
-                '• Agreement Term: 24 Months\n• Termination Notice: 30 Days\n• Governing Law: State of California\n• Status: Ready for execution'
-              );
+            onPress={async () => {
+              try {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+                const activeDoc = ActiveDocumentStore.getActiveDocument();
+                const docLabel = activeDoc ? `Document: ${activeDoc.name} (${activeDoc.pageCount || 1} pages)` : 'Standard Commercial Agreement';
+                const summary = await AIAssistantService.summarizeDocument(docLabel);
+                setSummaryText(summary);
+                SystemErrorService.showNotification({
+                  code: 'OPERATION_SUCCESS',
+                  title: 'Executive Brief Generated',
+                  message: 'Executive summary generated locally in volatile RAM.',
+                  severity: 'success',
+                });
+              } catch (err: any) {
+                SystemErrorService.reportError(err, 'AI Summarizer');
+              }
             }}
           >
             <Text style={styles.actionBtnText}>📄 Summarize Current Document</Text>
           </TouchableOpacity>
+
+          {summaryText && (
+            <View style={[styles.resultCard, { backgroundColor: theme.surfaceCard, borderColor: '#3B82F6', marginTop: 16 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <Sparkles size={16} color="#3B82F6" />
+                <Text style={{ color: '#3B82F6', fontWeight: '800', fontSize: 13.5 }}>
+                  Executive Takeaways
+                </Text>
+              </View>
+              <Text style={[styles.cardText, { color: theme.textPrimary, lineHeight: 20 }]}>
+                {summaryText}
+              </Text>
+            </View>
+          )}
         </ScrollView>
       )}
     </View>

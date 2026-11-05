@@ -13,8 +13,13 @@ if exist "E:\android-tools\jdk-17" (
 ) else (
     set JAVA_HOME=E:\android-tools\jdk-17
 )
-set ANDROID_HOME=E:\Android\Sdk
-set ANDROID_SDK_ROOT=E:\Android\Sdk
+if exist "E:\android-tools\android-sdk" (
+    set ANDROID_HOME=E:\android-tools\android-sdk
+    set ANDROID_SDK_ROOT=E:\android-tools\android-sdk
+) else (
+    set ANDROID_HOME=E:\Android\Sdk
+    set ANDROID_SDK_ROOT=E:\Android\Sdk
+)
 set GRADLE_USER_HOME=E:\.gradle
 set PATH=%JAVA_HOME%\bin;%ANDROID_HOME%\cmdline-tools\latest\bin;%ANDROID_HOME%\platform-tools;%PATH%
 
