@@ -6,12 +6,30 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue?style=for-the-badge&logo=android" alt="Platforms" />
+  <a href="https://github.com/abhieee-java/tridentpdf.apk/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/Release-v1.0.0-orange?style=for-the-badge&logo=github" alt="Release v1.0.0" /></a>
+  <a href="https://github.com/abhieee-java/tridentpdf.apk/actions"><img src="https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions" alt="CI/CD" /></a>
   <img src="https://img.shields.io/badge/React%20Native-0.76-61DAFB?style=for-the-badge&logo=react" alt="React Native" />
-  <img src="https://img.shields.io/badge/Expo%20SDK-52-black?style=for-the-badge&logo=expo" alt="Expo" />
   <img src="https://img.shields.io/badge/Privacy-100%25%20On--Device-10B981?style=for-the-badge&logo=shield" alt="Privacy" />
   <img src="https://img.shields.io/badge/Compliance-DPDP%20Act%202023-purple?style=for-the-badge" alt="DPDP Act" />
-  <img src="https://img.shields.io/badge/Tests-189%2F189%20Passing-success?style=for-the-badge" alt="Tests" />
 </p>
+
+---
+
+## ⚡ WPS Office Suite Architecture & Apple-Grade Page Reader
+
+TridentPDF Mobile operates as an on-device document suite inspired by WPS Office:
+
+1. **WPS 4-Tab Navigation & Spring Action Menu:**
+   - **Recent Documents:** Chronological timeline grouped by `TODAY`, `YESTERDAY`, and `EARLIER THIS WEEK` with reactive format filter chips (`DOC`, `XLS`, `PPT`, `PDF`).
+   - **Folders & Storage Hub:** Direct local device filesystem browser with format badges, live search, multi-axis sort, share, and delete.
+   - **Central Kinetic FAB (`+`):** 1-tap quick action sheet for creating blank Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), Text (`.txt`), and camera scanning.
+   - **25-Tool Studio Matrix:** Instant toggle between 🔱 TridentPDF Studio (25 tools) and ⚡ Office Utilities.
+2. **Apple-Grade Physical Page Reader Canvas:**
+   - Simulated physical A4 sheet with realistic paper drop shadows, margin guidelines, and Trident watermark.
+   - Live interactive controls: zoom scrubber (`70%–150%`), page navigation scrubber (`< Page X of Y >`), print dialog, and a quick-action launcher directly invoking any of the 25 operations on the active document.
+3. **Active Document Store & Unified Error Engine:**
+   - In-memory reactive document state keeps files accessible across all tools without redundant re-uploads.
+   - Centralized non-crashing glassmorphic error recovery banner with retry and clear actions.
 
 ---
 
