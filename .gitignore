@@ -41,6 +41,7 @@ inspect_*.js
 print_*.js
 extract_full_registry.js
 create_assets.js
-phone_screenshot*.png
+phone_*.png
+*.xml
 .agents/
 tests/e2e/test_results.json
