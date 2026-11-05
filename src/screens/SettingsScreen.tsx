@@ -159,23 +159,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* About WPS Office */}
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ABOUT WPS OFFICE</Text>
+      {/* About TridentPDF */}
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ABOUT TRIDENTPDF</Text>
       <View style={[styles.settingsGroup, { backgroundColor: theme.surfaceCard, borderColor: theme.border }]}>
         <View style={styles.settingRow}>
           <View style={styles.rowLeft}>
             <Info size={18} color="#2563EB" />
             <View>
-              <Text style={[styles.rowLabel, { color: theme.textPrimary }]}>WPS Office Alternative</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Version 1.0.0 (Release Build)</Text>
+              <Text style={[styles.rowLabel, { color: theme.textPrimary }]}>TridentPDF Studio</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Version 1.0.0 (WPS Office Suite Edition)</Text>
             </View>
           </View>
         </View>
       </View>
 
       <Text style={[styles.footerText, { color: theme.textMuted }]}>
-        WPS Office Mobile Alternative v1.0.0{'\n'}
-        Universal Office Suite • On-Device & Cloud
+        TridentPDF Mobile Suite v1.0.0{'\n'}
+        100% On-Device DPDP-Compliant PDF & Office Studio
       </Text>
     </ScrollView>
   );
