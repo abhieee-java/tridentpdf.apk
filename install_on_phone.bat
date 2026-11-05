@@ -4,7 +4,11 @@ echo   TridentPDF Mobile - Fast Install to Connected Phone
 echo ========================================================
 echo.
 
-set ADB=E:\Android\Sdk\platform-tools\adb.exe
+if exist "E:\android-tools\android-sdk\platform-tools\adb.exe" (
+    set ADB=E:\android-tools\android-sdk\platform-tools\adb.exe
+) else (
+    set ADB=E:\Android\Sdk\platform-tools\adb.exe
+)
 
 echo Checking for connected Android phone via ADB...
 "%ADB%" devices
