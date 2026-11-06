@@ -19,6 +19,7 @@ import * as Print from 'expo-print';
 import * as Haptics from 'expo-haptics';
 import { SystemErrorService } from '../services/systemErrorService';
 import { ActiveDocumentStore } from '../services/activeDocumentStore';
+import { FontFamily } from '../theme/typography';
 import {
   FileText,
   Images,
@@ -398,37 +399,47 @@ export const WPSToolsScreen: React.FC<WPSToolsScreenProps> = ({
         <TouchableOpacity
           style={[
             styles.modeTab,
-            viewMode === 'studio' && styles.modeTabActive,
+            viewMode === 'studio' && (isDark ? styles.modeTabActiveDark : styles.modeTabActiveLight),
           ]}
-          onPress={() => setViewMode('studio')}
+          onPress={() => {
+            try {
+              Haptics.selectionAsync();
+            } catch {}
+            setViewMode('studio');
+          }}
           activeOpacity={0.7}
         >
           <Text
             style={[
               styles.modeTabText,
-              { color: isDark ? '#A1A1AA' : '#64748B' },
-              viewMode === 'studio' && styles.modeTabTextActive,
+              { color: isDark ? '#94A3B8' : '#64748B' },
+              viewMode === 'studio' && (isDark ? styles.modeTabTextActiveDark : styles.modeTabTextActiveLight),
             ]}
           >
-            🔱 TridentPDF Studio (25 Tools)
+            Studio (25 Tools)
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.modeTab,
-            viewMode === 'office' && styles.modeTabActive,
+            viewMode === 'office' && (isDark ? styles.modeTabActiveDark : styles.modeTabActiveLight),
           ]}
-          onPress={() => setViewMode('office')}
+          onPress={() => {
+            try {
+              Haptics.selectionAsync();
+            } catch {}
+            setViewMode('office');
+          }}
           activeOpacity={0.7}
         >
           <Text
             style={[
               styles.modeTabText,
-              { color: isDark ? '#A1A1AA' : '#64748B' },
-              viewMode === 'office' && styles.modeTabTextActive,
+              { color: isDark ? '#94A3B8' : '#64748B' },
+              viewMode === 'office' && (isDark ? styles.modeTabTextActiveDark : styles.modeTabTextActiveLight),
             ]}
           >
-            ⚡ Office Utilities
+            Office Suite
           </Text>
         </TouchableOpacity>
       </View>
@@ -612,20 +623,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modeTabActive: {
-    backgroundColor: '#2563EB',
-    shadowColor: '#2563EB',
+  modeTabActiveDark: {
+    backgroundColor: '#1E1E2C',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.35,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modeTabActiveLight: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,
   },
   modeTabText: {
+    fontFamily: FontFamily.sans,
     fontSize: 12,
     fontWeight: '600',
+    letterSpacing: -0.1,
   },
-  modeTabTextActive: {
+  modeTabTextActiveDark: {
     color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  modeTabTextActiveLight: {
+    color: '#0F172A',
     fontWeight: '700',
   },
   content: {

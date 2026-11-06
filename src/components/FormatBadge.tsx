@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { FontFamily } from '../theme/typography';
 
 export type DocumentType =
   | 'docx'
@@ -33,38 +34,38 @@ export const getFormatMeta = (rawType: string): FormatMeta => {
       return {
         letter: 'W',
         label: t.toUpperCase(),
-        bgColor: '#2563EB',
-        secondaryBg: '#1D4ED8',
+        bgColor: '#007AFF',
+        secondaryBg: '#0051D5',
       };
     case 'xlsx':
     case 'xls':
       return {
         letter: 'S',
         label: t.toUpperCase(),
-        bgColor: '#16A34A',
-        secondaryBg: '#15803D',
+        bgColor: '#34C759',
+        secondaryBg: '#28A745',
       };
     case 'csv':
       return {
         letter: 'X',
         label: 'CSV',
-        bgColor: '#16A34A',
-        secondaryBg: '#15803D',
+        bgColor: '#30D158',
+        secondaryBg: '#28A745',
       };
     case 'pptx':
     case 'ppt':
       return {
         letter: 'P',
         label: t.toUpperCase(),
-        bgColor: '#EA580C',
-        secondaryBg: '#C2410C',
+        bgColor: '#FF9500',
+        secondaryBg: '#D97706',
       };
     case 'pdf':
       return {
         letter: 'PDF',
         label: 'PDF',
-        bgColor: '#DC2626',
-        secondaryBg: '#B91C1C',
+        bgColor: '#FF3B30',
+        secondaryBg: '#DC2626',
       };
     case 'txt':
     default:
@@ -86,10 +87,10 @@ export const FormatBadge: React.FC<FormatBadgeProps> = ({
 
   const dimensions =
     size === 'sm'
-      ? { width: 32, height: 32, radius: 8, fontSize: 13, labelSize: 7.5 }
+      ? { width: 34, height: 34, radius: 9, fontSize: 13, labelSize: 8 }
       : size === 'lg'
-      ? { width: 56, height: 56, radius: 14, fontSize: 22, labelSize: 10 }
-      : { width: 44, height: 44, radius: 11, fontSize: 17, labelSize: 9 };
+      ? { width: 56, height: 56, radius: 15, fontSize: 22, labelSize: 10 }
+      : { width: 44, height: 44, radius: 12, fontSize: 16, labelSize: 9 };
 
   return (
     <View style={styles.wrapper}>
@@ -104,6 +105,7 @@ export const FormatBadge: React.FC<FormatBadgeProps> = ({
           },
         ]}
       >
+        {/* Specular top highlight */}
         <View style={styles.glossHighlight} />
         <Text
           style={[
@@ -144,24 +146,28 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.16,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   glossHighlight: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: '40%',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    height: '42%',
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
   },
   letter: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
-    fontWeight: '900',
-    letterSpacing: -0.5,
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   badgeLabel: {
+    fontFamily: FontFamily.mono,
     fontWeight: '700',
     letterSpacing: 0.3,
   },

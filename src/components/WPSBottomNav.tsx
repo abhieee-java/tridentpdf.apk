@@ -5,11 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Clock, Folder, Grid, Settings, Plus } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '../theme/ThemeContext';
+import { FontFamily } from '../theme/typography';
 
 export type WPSTab = 'recent' | 'folders' | 'tools' | 'settings';
 
@@ -35,7 +37,7 @@ export const WPSBottomNav: React.FC<WPSBottomNavProps> = ({
   useEffect(() => {
     Animated.spring(rotateAnim, {
       toValue: isActionMenuOpen ? 1 : 0,
-      tension: 90,
+      tension: 110,
       friction: 8,
       useNativeDriver: true,
     }).start();
@@ -47,22 +49,26 @@ export const WPSBottomNav: React.FC<WPSBottomNavProps> = ({
   });
 
   const handleTabPress = (tab: WPSTab) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {}
     onSelectTab(tab);
   };
 
   const handleFABPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {}
     Animated.sequence([
       Animated.timing(scaleAnim, {
-        toValue: 0.9,
-        duration: 70,
+        toValue: 0.92,
+        duration: 80,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
-        tension: 100,
-        friction: 6,
+        tension: 140,
+        friction: 7,
         useNativeDriver: true,
       }),
     ]).start();
@@ -76,14 +82,17 @@ export const WPSBottomNav: React.FC<WPSBottomNavProps> = ({
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
+  const activeColor = isDark ? '#38BDF8' : '#007AFF';
+  const inactiveColor = theme.textMuted;
+
   return (
     <View
       style={[
         styles.barContainer,
         {
-          backgroundColor: isDark ? '#0C0C12' : '#FFFFFF',
-          borderTopColor: isDark ? '#22222A' : '#E5E7EB',
-          paddingBottom: Math.max(insets.bottom, 6),
+          backgroundColor: isDark ? '#09090E' : '#FFFFFF',
+          borderTopColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+          paddingBottom: Math.max(insets.bottom, 8),
         },
       ]}
     >
@@ -99,21 +108,24 @@ export const WPSBottomNav: React.FC<WPSBottomNavProps> = ({
             onPress={() => handleTabPress(tab.id)}
             activeOpacity={0.7}
           >
-            <Icon size={21} color={isActive ? '#2563EB' : theme.textMuted} />
+            <Icon size={20} color={isActive ? activeColor : inactiveColor} strokeWidth={isActive ? 2.3 : 1.8} />
             <Text
               style={[
                 styles.tabLabel,
-                { color: isActive ? '#2563EB' : theme.textMuted, fontWeight: isActive ? '700' : '500' },
+                {
+                  color: isActive ? activeColor : inactiveColor,
+                  fontWeight: isActive ? '700' : '500',
+                },
               ]}
             >
               {tab.label}
             </Text>
-            {isActive && <View style={styles.activeDot} />}
+            {isActive && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
           </TouchableOpacity>
         );
       })()}
 
-      {/* Tab 2: Folders / Cloud */}
+      {/* Tab 2: Folders */}
       {(() => {
         const tab = tabs[1];
         const Icon = tab.icon;
@@ -125,36 +137,47 @@ export const WPSBottomNav: React.FC<WPSBottomNavProps> = ({
             onPress={() => handleTabPress(tab.id)}
             activeOpacity={0.7}
           >
-            <Icon size={21} color={isActive ? '#2563EB' : theme.textMuted} />
+            <Icon size={20} color={isActive ? activeColor : inactiveColor} strokeWidth={isActive ? 2.3 : 1.8} />
             <Text
               style={[
                 styles.tabLabel,
-                { color: isActive ? '#2563EB' : theme.textMuted, fontWeight: isActive ? '700' : '500' },
+                {
+                  color: isActive ? activeColor : inactiveColor,
+                  fontWeight: isActive ? '700' : '500',
+                },
               ]}
             >
               {tab.label}
             </Text>
-            {isActive && <View style={styles.activeDot} />}
+            {isActive && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
           </TouchableOpacity>
         );
       })()}
 
-      {/* Center Action (+) FAB */}
+      {/* Center Action (+) Apple-Grade Specular Action Button */}
       <View style={styles.fabSlot}>
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
           <TouchableOpacity
-            style={styles.fabButton}
+            style={[
+              styles.fabButton,
+              {
+                backgroundColor: isDark ? '#007AFF' : '#007AFF',
+                shadowColor: '#007AFF',
+              },
+            ]}
             onPress={handleFABPress}
-            activeOpacity={0.85}
+            activeOpacity={0.88}
           >
+            {/* Top specular highlight ring */}
+            <View style={styles.fabSpecularHighlight} />
             <Animated.View style={{ transform: [{ rotate: spin }] }}>
-              <Plus size={26} color="#FFFFFF" strokeWidth={2.6} />
+              <Plus size={24} color="#FFFFFF" strokeWidth={2.6} />
             </Animated.View>
           </TouchableOpacity>
         </Animated.View>
       </View>
 
-      {/* Tab 3: Tools Center */}
+      {/* Tab 3: Tools */}
       {(() => {
         const tab = tabs[2];
         const Icon = tab.icon;
@@ -166,16 +189,19 @@ export const WPSBottomNav: React.FC<WPSBottomNavProps> = ({
             onPress={() => handleTabPress(tab.id)}
             activeOpacity={0.7}
           >
-            <Icon size={21} color={isActive ? '#2563EB' : theme.textMuted} />
+            <Icon size={20} color={isActive ? activeColor : inactiveColor} strokeWidth={isActive ? 2.3 : 1.8} />
             <Text
               style={[
                 styles.tabLabel,
-                { color: isActive ? '#2563EB' : theme.textMuted, fontWeight: isActive ? '700' : '500' },
+                {
+                  color: isActive ? activeColor : inactiveColor,
+                  fontWeight: isActive ? '700' : '500',
+                },
               ]}
             >
               {tab.label}
             </Text>
-            {isActive && <View style={styles.activeDot} />}
+            {isActive && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
           </TouchableOpacity>
         );
       })()}
@@ -192,16 +218,19 @@ export const WPSBottomNav: React.FC<WPSBottomNavProps> = ({
             onPress={() => handleTabPress(tab.id)}
             activeOpacity={0.7}
           >
-            <Icon size={21} color={isActive ? '#2563EB' : theme.textMuted} />
+            <Icon size={20} color={isActive ? activeColor : inactiveColor} strokeWidth={isActive ? 2.3 : 1.8} />
             <Text
               style={[
                 styles.tabLabel,
-                { color: isActive ? '#2563EB' : theme.textMuted, fontWeight: isActive ? '700' : '500' },
+                {
+                  color: isActive ? activeColor : inactiveColor,
+                  fontWeight: isActive ? '700' : '500',
+                },
               ]}
             >
               {tab.label}
             </Text>
-            {isActive && <View style={styles.activeDot} />}
+            {isActive && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
           </TouchableOpacity>
         );
       })()}
@@ -215,12 +244,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 8,
-    borderTopWidth: 1,
-    elevation: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    elevation: 12,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
   },
   tabItem: {
     flex: 1,
@@ -230,14 +259,14 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   tabLabel: {
-    fontSize: 10,
-    letterSpacing: 0.1,
+    fontFamily: FontFamily.sans,
+    fontSize: 10.5,
+    letterSpacing: -0.1,
   },
   activeDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#2563EB',
     marginTop: 1,
   },
   fabSlot: {
@@ -246,19 +275,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fabButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#FF5733',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -20,
-    elevation: 7,
-    shadowColor: '#FF5733',
+    marginTop: -18,
+    elevation: 8,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    shadowOpacity: 0.38,
+    shadowRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    overflow: 'hidden',
+  },
+  fabSpecularHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '45%',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
   },
 });

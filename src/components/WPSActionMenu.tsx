@@ -19,6 +19,7 @@ import {
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAppTheme } from '../theme/ThemeContext';
+import { FontFamily } from '../theme/typography';
 
 export type WPSActionType =
   | 'new_doc'
@@ -343,13 +344,16 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(150, 150, 150, 0.12)',
   },
   trayTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: -0.3,
   },
   traySubtitle: {
-    fontSize: 11,
+    fontFamily: FontFamily.sans,
+    fontSize: 11.5,
     marginTop: 1,
+    letterSpacing: -0.1,
   },
   closeBtn: {
     width: 32,
@@ -378,12 +382,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 14.5,
-    fontWeight: '700',
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   actionSubtitle: {
-    fontSize: 11,
+    fontFamily: FontFamily.sans,
+    fontSize: 11.5,
     marginTop: 1.5,
+    letterSpacing: -0.1,
   },
   formatBadge: {
     paddingHorizontal: 8,
@@ -392,8 +400,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   formatBadgeText: {
+    fontFamily: FontFamily.mono,
     fontSize: 9.5,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
 });

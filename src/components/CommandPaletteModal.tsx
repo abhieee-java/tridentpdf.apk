@@ -19,6 +19,7 @@ import {
   ChevronRight,
   ShieldCheck,
 } from 'lucide-react-native';
+import { FontFamily } from '../theme/typography';
 
 interface CommandPaletteModalProps {
   visible: boolean;
@@ -214,9 +215,11 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    fontFamily: FontFamily.sans,
     fontSize: 14,
     fontWeight: '600',
     padding: 0,
+    letterSpacing: -0.2,
   },
   categoriesRow: {
     flexDirection: 'row',
@@ -231,8 +234,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   catChipText: {
+    fontFamily: FontFamily.sans,
     fontSize: 10.5,
     fontWeight: '700',
+    letterSpacing: -0.1,
   },
   listContent: {
     paddingHorizontal: 12,
@@ -264,28 +269,34 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   itemTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 12.5,
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
   badgeBox: {
-    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
   },
   badgeText: {
-    color: '#2563EB',
+    fontFamily: FontFamily.mono,
+    color: '#007AFF',
     fontSize: 9.5,
     fontWeight: '700',
   },
   itemDesc: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
+    letterSpacing: -0.1,
   },
   emptyBox: {
     padding: 24,
     alignItems: 'center',
   },
   emptyText: {
+    fontFamily: FontFamily.sans,
     fontSize: 12,
   },
   footer: {
@@ -299,6 +310,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   footerText: {
-    fontSize: 10,
+    fontFamily: FontFamily.sans,
+    fontSize: 10.5,
+    letterSpacing: -0.1,
   },
 });

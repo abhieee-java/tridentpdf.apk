@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 import * as Haptics from 'expo-haptics';
 import { ArrowRight, Sparkles } from 'lucide-react-native';
+import { FontFamily } from '../theme/typography';
 
 interface ToolCardProps {
   id: string;
@@ -23,9 +24,9 @@ export const ToolCard: React.FC<ToolCardProps> = ({
   description,
   icon,
   badge,
-  badgeColor = '#2563EB',
-  iconBg = 'rgba(37, 99, 235, 0.1)',
-  iconColor = '#2563EB',
+  badgeColor = '#007AFF',
+  iconBg = 'rgba(0, 122, 255, 0.1)',
+  iconColor = '#007AFF',
   isNew,
   isAi,
   onPress,
@@ -35,7 +36,7 @@ export const ToolCard: React.FC<ToolCardProps> = ({
   const handlePress = () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch (e) {}
+    } catch {}
     onPress();
   };
 
@@ -44,11 +45,11 @@ export const ToolCard: React.FC<ToolCardProps> = ({
       style={[
         styles.card,
         {
-          backgroundColor: isDark ? '#11111B' : '#FFFFFF',
-          borderColor: isDark ? '#27272A' : '#EBE7F7',
+          backgroundColor: isDark ? '#111118' : '#FFFFFF',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
         },
       ]}
-      activeOpacity={0.78}
+      activeOpacity={0.72}
       onPress={handlePress}
     >
       <View style={styles.contentWrap}>
@@ -59,16 +60,41 @@ export const ToolCard: React.FC<ToolCardProps> = ({
           </View>
 
           {isNew ? (
-            <View style={[styles.badge, { backgroundColor: isDark ? 'rgba(6, 182, 212, 0.2)' : '#ECFEFF', borderColor: 'rgba(6, 182, 212, 0.35)' }]}>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : '#ECFEFF',
+                  borderColor: 'rgba(6, 182, 212, 0.35)',
+                },
+              ]}
+            >
               <Text style={[styles.badgeText, { color: '#06B6D4' }]}>NEW</Text>
             </View>
           ) : isAi ? (
-            <View style={[styles.badge, styles.aiBadge, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : '#F5F3FF', borderColor: 'rgba(139, 92, 246, 0.35)' }]}>
+            <View
+              style={[
+                styles.badge,
+                styles.aiBadge,
+                {
+                  backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#F5F3FF',
+                  borderColor: 'rgba(139, 92, 246, 0.35)',
+                },
+              ]}
+            >
               <Sparkles size={9} color="#8B5CF6" />
               <Text style={[styles.badgeText, { color: '#8B5CF6' }]}>AI</Text>
             </View>
           ) : badge ? (
-            <View style={[styles.badge, { backgroundColor: `${badgeColor}15`, borderColor: `${badgeColor}30` }]}>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor: `${badgeColor}15`,
+                  borderColor: `${badgeColor}35`,
+                },
+              ]}
+            >
               <Text style={[styles.badgeText, { color: badgeColor }]}>{badge}</Text>
             </View>
           ) : null}
@@ -76,19 +102,35 @@ export const ToolCard: React.FC<ToolCardProps> = ({
 
         {/* Title & Description */}
         <View style={styles.textWrap}>
-          <Text style={[styles.title, { color: theme.textPrimary }]} numberOfLines={1}>
+          <Text
+            style={[styles.title, { color: isDark ? '#FFFFFF' : '#0F172A' }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {title}
           </Text>
-          <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={2}>
+          <Text
+            style={[styles.description, { color: theme.textSecondary }]}
+            numberOfLines={2}
+          >
             {description}
           </Text>
         </View>
       </View>
 
       {/* Bottom Action Footer */}
-      <View style={[styles.footer, { borderTopColor: isDark ? '#1E1E28' : '#F1F3F5' }]}>
-        <Text style={[styles.footerText, { color: theme.textMuted }]}>Open</Text>
-        <ArrowRight size={13} color={theme.textMuted} />
+      <View
+        style={[
+          styles.footer,
+          {
+            borderTopColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+          },
+        ]}
+      >
+        <Text style={[styles.footerText, { color: isDark ? '#38BDF8' : '#007AFF' }]}>
+          OPEN
+        </Text>
+        <ArrowRight size={12} color={isDark ? '#38BDF8' : '#007AFF'} />
       </View>
     </TouchableOpacity>
   );
@@ -98,16 +140,16 @@ const styles = StyleSheet.create({
   card: {
     width: '47.5%',
     margin: '1.25%',
-    padding: 13,
+    padding: 12,
     borderRadius: 16,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
     shadowRadius: 5,
     elevation: 2,
     justifyContent: 'space-between',
-    minHeight: 145,
+    minHeight: 148,
   },
   contentWrap: {
     gap: 8,
@@ -116,17 +158,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   iconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 11,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconEmoji: {
-    fontSize: 19,
+    fontSize: 18,
   },
   badge: {
     paddingHorizontal: 6,
@@ -140,35 +184,38 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   badgeText: {
+    fontFamily: FontFamily.mono,
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 0.2,
-    textTransform: 'uppercase',
   },
   textWrap: {
-    gap: 3,
+    gap: 2,
   },
   title: {
+    fontFamily: FontFamily.sans,
     fontSize: 13.5,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
   description: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
     lineHeight: 15,
+    letterSpacing: -0.1,
   },
   footer: {
     paddingTop: 8,
-    marginTop: 8,
-    borderTopWidth: 1,
+    marginTop: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   footerText: {
-    fontSize: 10,
+    fontFamily: FontFamily.mono,
+    fontSize: 9.5,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
   },
 });

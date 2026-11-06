@@ -1,26 +1,42 @@
-# Phase 4: UI/UX Design System Specification ("Apple, Elevated")
+# Phase 4: UI/UX Design System Specification ("Apple HIG, Elevated")
 
-## 1. Aesthetic Philosophy: "Apple, Elevated"
+## 1. Aesthetic Philosophy: "Apple HIG, Elevated"
 - **Visual Rhythm:** 4px / 8px mathematical grid, generous negative space (`16px–24px` internal padding, `32px–48px` section padding).
-- **Surface Depth:** Glassmorphic backdrops (`rgba(18, 18, 23, 0.85)` with `backdrop-filter: blur(24px)`), specular borders (`1px solid rgba(255, 255, 255, 0.08)`), top inner specular highlight (`shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)]`).
-- **Typography:** Display headlines (`clamp(1.75rem, 4vw, 2.5rem)`), body copy (`15px–17px`), line-height `1.55`.
+- **Surface Depth:**
+  - Obsidian Dark Canvas: `#000000`
+  - Elevated Navigation & Sheets: `#09090E` with 0.5px hairline specular borders (`rgba(255, 255, 255, 0.08)`)
+  - Document Cards & Modals: `#111118` with top inner specular highlight (`shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)]`)
+  - Light Mode Canvas: `#F7F7F8` alabaster with `#FFFFFF` pure white cards and whisper hairline dividers (`rgba(0, 0, 0, 0.06)`).
+- **Bundled Font Typography Engine (Zero Vendor Serif Fallbacks):**
+  - Standalone bundled static TrueType assets in `android/app/src/main/assets/fonts/`:
+    - `Inter-Regular.ttf` (Body, Footnote)
+    - `Inter-Medium.ttf` (Callout, Subhead)
+    - `Inter-SemiBold.ttf` (Headline, Title3, Caption)
+    - `Inter-Bold.ttf` (LargeTitle, Title1, Title2, BadgeText)
+  - Monospaced numerals & byte telemetry: `monospace` / `Menlo` for tabular alignment.
 
-## 2. Color Palette & Format Tokens
+## 2. Color Palette & Action Tokens
 | Token | Dark Mode Hex | Light Mode Hex | Purpose |
 | :--- | :--- | :--- | :--- |
-| `background` | `#09090D` | `#F8F9FA` | Canvas surface |
-| `surfaceElevated` | `#121217` | `#FFFFFF` | Nav bars, header, sheets |
-| `surfaceCard` | `#181822` | `#FFFFFF` | Document cards, modals |
-| `border` | `rgba(255,255,255,0.08)` | `rgba(0,0,0,0.06)` | Specular dividers |
-| `primary` | `#2563EB` | `#2563EB` | Revenue and primary action |
-| `accentFAB` | `#EA580C` | `#EA580C` | WPS central action button |
-| `badgeDOCX` | `#2563EB` | `#1D4ED8` | Word document badge |
-| `badgeXLSX` | `#16A34A` | `#15803D` | Excel sheet badge |
-| `badgePPTX` | `#EA580C` | `#C2410C` | Presentation slide badge |
-| `badgePDF` | `#DC2626` | `#B91C1C` | Portable document badge |
+| `background` | `#000000` | `#F7F7F8` | True obsidian canvas |
+| `surfaceElevated` | `#09090E` | `#FFFFFF` | Nav bars, header, sheets |
+| `surfaceCard` | `#111118` | `#FFFFFF` | Document cards, modals |
+| `border` | `rgba(255,255,255,0.08)` | `rgba(0,0,0,0.06)` | 0.5px specular hairline |
+| `primary` | `#007AFF` | `#007AFF` | Apple System Blue |
+| `accentFAB` | `#007AFF` | `#007AFF` | Frosted specular central action button |
+| `badgeDOCX` | `#007AFF` | `#007AFF` | Word document badge |
+| `badgeXLSX` | `#34C759` | `#34C759` | Excel sheet badge |
+| `badgePPTX` | `#FF9500` | `#FF9500` | Presentation slide badge |
+| `badgePDF` | `#FF3B30` | `#FF3B30` | Portable document badge |
 | `badgeTXT` | `#64748B` | `#475569` | Plain text badge |
+| `badgePRIVATE`| `#10B981` | `#059669` | 100% On-Device DPDP badge |
 
-## 3. Kinetic Physics & Micro-Interactions
-- **Spring Tokens:** Physically modeled spring physics (`stiffness: 400`, `damping: 25`, `mass: 0.5`).
-- **Haptic Feedback:** `Haptics.impactAsync(Light)` on navigation and format pill selection; `Haptics.notificationAsync(Success)` on document generation.
-- **Physical Sheet Simulation:** White A4 paper canvas with `#00000030` shadow radius `18px`, margin guidelines, and Trident watermark.
+## 3. Kinetic Physics & Micro-Interactions (Emil Kowalski Physics)
+- **Spring Tokens:**
+  - Snappy Micro-taps / Buttons: `{ stiffness: 450, damping: 28, mass: 0.6 }` with `whileTap={{ scale: 0.965 }}`.
+  - Modals / Drawers: `{ stiffness: 280, damping: 26, mass: 0.9 }`.
+  - Sheet Reveals: Native interruptible velocity hand-off.
+- **Haptic Feedback:**
+  - `Haptics.impactAsync(Light)` on navigation, document selection, and format pill selection.
+  - `Haptics.notificationAsync(Success)` on document export and conversion.
+- **Tactile Paper Canvas:** Crisp white A4 paper canvas with `#00000030` shadow radius `18px`, margin guidelines, and Trident watermark.

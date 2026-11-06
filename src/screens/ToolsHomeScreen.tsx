@@ -27,6 +27,7 @@ import * as Haptics from 'expo-haptics';
 import { FileAccessHubModal } from '../components/FileAccessHubModal';
 import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import { SystemErrorService } from '../services/systemErrorService';
+import { FontFamily } from '../theme/typography';
 import {
   Search,
   X,
@@ -469,20 +470,24 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   privacyPillText: {
-    fontSize: 11,
+    fontFamily: FontFamily.mono,
+    fontSize: 10.5,
     fontWeight: '700',
     letterSpacing: 0.1,
   },
   heroTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: -0.6,
   },
   heroSubtitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 12,
     lineHeight: 17,
     textAlign: 'center',
     maxWidth: 320,
+    letterSpacing: -0.1,
   },
   heroBtnRow: {
     flexDirection: 'row',
@@ -495,20 +500,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#007AFF',
     paddingHorizontal: 20,
     paddingVertical: 11,
     borderRadius: 13,
-    shadowColor: '#2563EB',
+    shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.28,
     shadowRadius: 6,
     elevation: 4,
   },
   primaryHeroBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 12.5,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   secondaryHeroBtn: {
     flexDirection: 'row',
@@ -521,8 +527,9 @@ const styles = StyleSheet.create({
     borderRadius: 13,
   },
   secondaryHeroBtnText: {
+    fontFamily: FontFamily.sans,
     fontSize: 12.5,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   activeFileCard: {
     borderRadius: 18,
@@ -558,19 +565,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   loadedBadgeText: {
+    fontFamily: FontFamily.mono,
     fontSize: 9.5,
-    fontWeight: '900',
+    fontWeight: '700',
     color: '#10B981',
     letterSpacing: 0.4,
   },
   fileName: {
+    fontFamily: FontFamily.sans,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   fileMeta: {
+    fontFamily: FontFamily.mono,
     fontSize: 10.5,
-    fontWeight: '700',
-    fontFamily: 'monospace',
+    fontWeight: '600',
   },
   activeActionsRow: {
     flexDirection: 'row',
@@ -589,9 +599,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   switchBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 11.5,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   clearBtn: {
     flexDirection: 'row',
@@ -604,9 +615,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   clearBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 11.5,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   searchWrapper: {
     paddingHorizontal: 16,
@@ -624,9 +636,11 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: FontFamily.sans,
     fontSize: 12.5,
     padding: 0,
-    fontWeight: '600',
+    fontWeight: '500',
+    letterSpacing: -0.1,
   },
   commandQuickBtn: {
     padding: 3,
@@ -643,7 +657,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   categoryPillText: {
+    fontFamily: FontFamily.sans,
     fontSize: 11.5,
+    letterSpacing: -0.1,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -654,9 +670,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   sectionTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 14.5,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   countBadge: {
     paddingHorizontal: 8,
@@ -665,9 +682,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   countBadgeText: {
+    fontFamily: FontFamily.mono,
     fontSize: 10,
-    fontWeight: '800',
-    fontFamily: 'monospace',
+    fontWeight: '700',
   },
   grid: {
     flexDirection: 'row',
@@ -686,10 +703,14 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   dpdpText: {
+    fontFamily: FontFamily.sans,
     fontSize: 11.5,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   dpdpSub: {
+    fontFamily: FontFamily.sans,
     fontSize: 10,
+    letterSpacing: -0.1,
   },
 });

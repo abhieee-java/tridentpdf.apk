@@ -16,6 +16,7 @@ import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import { DocumentStorageService } from '../services/documentStorage';
 import { FormatBadge, DocumentType } from '../components/FormatBadge';
 import { AppTool } from '../types';
+import { FontFamily } from '../theme/typography';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
@@ -823,11 +824,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   appBrandName: {
+    fontFamily: FontFamily.sans,
     fontSize: 12,
     fontWeight: '800',
     color: '#0F172A',
+    letterSpacing: -0.2,
   },
   appBrandSub: {
+    fontFamily: FontFamily.sans,
     fontSize: 9.5,
     fontWeight: '600',
     color: '#64748B',
@@ -837,6 +841,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   sheetPageNumber: {
+    fontFamily: FontFamily.mono,
     fontSize: 9.5,
     fontWeight: '700',
     color: '#94A3B8',
@@ -857,7 +862,7 @@ const styles = StyleSheet.create({
   rawTextContent: {
     fontSize: 12,
     lineHeight: 18,
-    fontFamily: 'monospace',
+    fontFamily: FontFamily.mono,
     color: '#1E293B',
   },
   pdfPageSimulation: {
@@ -873,10 +878,12 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
   },
   pdfDocTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#0F172A',
     flex: 1,
+    letterSpacing: -0.2,
   },
   pdfMetaGrid: {
     flexDirection: 'row',
@@ -891,12 +898,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   pdfMetaLabel: {
+    fontFamily: FontFamily.mono,
     fontSize: 8.5,
     fontWeight: '800',
     color: '#64748B',
     letterSpacing: 0.5,
   },
   pdfMetaValue: {
+    fontFamily: FontFamily.mono,
     fontSize: 10.5,
     fontWeight: '700',
     color: '#1E293B',

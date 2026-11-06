@@ -4,6 +4,7 @@ import { useAppTheme } from '../theme/ThemeContext';
 import * as FileSystem from 'expo-file-system';
 import { SystemErrorService } from '../services/systemErrorService';
 import * as Haptics from 'expo-haptics';
+import { FontFamily } from '../theme/typography';
 import {
   Moon,
   Sun,
@@ -191,9 +192,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    letterSpacing: 0.6,
+    fontFamily: FontFamily.mono,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
     marginTop: 8,
     marginLeft: 4,
   },
@@ -216,26 +218,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rowLabel: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontFamily: FontFamily.sans,
+    fontSize: 13.5,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   rowSub: {
-    fontSize: 10.5,
+    fontFamily: FontFamily.sans,
+    fontSize: 11,
     marginTop: 1,
+    letterSpacing: -0.1,
   },
   activeDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#007AFF',
   },
   divider: {
     height: 1,
   },
   footerText: {
-    fontSize: 10.5,
+    fontFamily: FontFamily.sans,
+    fontSize: 11,
     textAlign: 'center',
     marginTop: 16,
-    lineHeight: 15,
+    lineHeight: 16,
+    letterSpacing: -0.1,
   },
 });

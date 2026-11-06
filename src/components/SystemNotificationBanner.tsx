@@ -21,6 +21,7 @@ import {
   X,
   ArrowRight,
 } from 'lucide-react-native';
+import { FontFamily } from '../theme/typography';
 
 const SEVERITY_THEME: Record<
   ErrorSeverity,
@@ -33,30 +34,30 @@ const SEVERITY_THEME: Record<
   }
 > = {
   error: {
-    bgDark: '#2D1517',
+    bgDark: '#1C0D0E',
     bgLight: '#FEF2F2',
-    borderDark: 'rgba(239, 68, 68, 0.35)',
+    borderDark: 'rgba(239, 68, 68, 0.4)',
     borderLight: '#FCA5A5',
     iconColor: '#EF4444',
   },
   warning: {
-    bgDark: '#2C2013',
+    bgDark: '#1C150A',
     bgLight: '#FFFBEB',
-    borderDark: 'rgba(245, 158, 11, 0.35)',
+    borderDark: 'rgba(245, 158, 11, 0.4)',
     borderLight: '#FCD34D',
     iconColor: '#F59E0B',
   },
   info: {
-    bgDark: '#122038',
+    bgDark: '#0A1220',
     bgLight: '#EFF6FF',
-    borderDark: 'rgba(59, 130, 246, 0.35)',
+    borderDark: 'rgba(0, 122, 255, 0.4)',
     borderLight: '#BFDBFE',
-    iconColor: '#3B82F6',
+    iconColor: '#007AFF',
   },
   success: {
-    bgDark: '#13281E',
+    bgDark: '#0A1B12',
     bgLight: '#ECFDF5',
-    borderDark: 'rgba(16, 185, 129, 0.35)',
+    borderDark: 'rgba(16, 185, 129, 0.4)',
     borderLight: '#A7F3D0',
     iconColor: '#10B981',
   },
@@ -77,13 +78,13 @@ export const SystemNotificationBanner: React.FC = () => {
           Animated.spring(translateY, {
             toValue: 0,
             useNativeDriver: true,
-            stiffness: 350,
+            stiffness: 450,
             damping: 28,
-            mass: 0.8,
+            mass: 0.6,
           }),
           Animated.timing(opacity, {
             toValue: 1,
-            duration: 220,
+            duration: 200,
             useNativeDriver: true,
           }),
         ]).start();
@@ -117,14 +118,14 @@ export const SystemNotificationBanner: React.FC = () => {
   const renderIcon = () => {
     switch (notification.severity) {
       case 'error':
-        return <AlertCircle size={20} color={severityConf.iconColor} />;
+        return <AlertCircle size={18} color={severityConf.iconColor} />;
       case 'warning':
-        return <AlertTriangle size={20} color={severityConf.iconColor} />;
+        return <AlertTriangle size={18} color={severityConf.iconColor} />;
       case 'success':
-        return <CheckCircle2 size={20} color={severityConf.iconColor} />;
+        return <CheckCircle2 size={18} color={severityConf.iconColor} />;
       case 'info':
       default:
-        return <Info size={20} color={severityConf.iconColor} />;
+        return <Info size={18} color={severityConf.iconColor} />;
     }
   };
 
@@ -159,7 +160,7 @@ export const SystemNotificationBanner: React.FC = () => {
         <View style={styles.iconContainer}>{renderIcon()}</View>
 
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: theme.textPrimary }]} numberOfLines={1}>
+          <Text style={[styles.title, { color: isDark ? '#FFFFFF' : '#0F172A' }]} numberOfLines={1}>
             {notification.title}
           </Text>
           <Text style={[styles.message, { color: theme.textSecondary }]} numberOfLines={2}>
@@ -171,7 +172,7 @@ export const SystemNotificationBanner: React.FC = () => {
               <Text style={[styles.actionBtnText, { color: severityConf.iconColor }]}>
                 {notification.actionLabel}
               </Text>
-              <ArrowRight size={13} color={severityConf.iconColor} />
+              <ArrowRight size={12} color={severityConf.iconColor} />
             </TouchableOpacity>
           )}
         </View>
@@ -182,7 +183,7 @@ export const SystemNotificationBanner: React.FC = () => {
             onPress={() => SystemErrorService.clear(notification.id)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <X size={16} color={theme.textMuted} />
+            <X size={15} color={theme.textMuted} />
           </TouchableOpacity>
         )}
       </View>
@@ -193,7 +194,7 @@ export const SystemNotificationBanner: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 54 : 12,
+    top: Platform.OS === 'ios' ? 52 : 12,
     left: 16,
     right: 16,
     zIndex: 99999,
@@ -201,48 +202,53 @@ const styles = StyleSheet.create({
   },
   pill: {
     width: '100%',
-    maxWidth: 520,
+    maxWidth: 500,
     borderRadius: 18,
-    borderWidth: 1.2,
-    paddingVertical: 12,
+    borderWidth: 1,
+    paddingVertical: 11,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: 11,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 10,
   },
   iconContainer: {
-    paddingTop: 2,
+    paddingTop: 1.5,
   },
   textContainer: {
     flex: 1,
     gap: 2,
   },
   title: {
-    fontSize: 14,
+    fontFamily: FontFamily.sans,
+    fontSize: 13.5,
     fontWeight: '700',
     letterSpacing: -0.2,
   },
   message: {
-    fontSize: 12,
+    fontFamily: FontFamily.sans,
+    fontSize: 11.5,
     lineHeight: 16,
+    letterSpacing: -0.1,
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 6,
+    marginTop: 5,
     alignSelf: 'flex-start',
   },
   actionBtnText: {
-    fontSize: 12,
+    fontFamily: FontFamily.mono,
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.1,
   },
   dismissBtn: {
-    padding: 4,
+    padding: 3,
     borderRadius: 8,
   },
 });

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 import { BRAND_ENTITY } from '../data/seoRegistry';
+import { FontFamily } from '../theme/typography';
 import {
   ShieldCheck,
   Lock,
@@ -320,11 +321,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   headerSub: {
-    fontSize: 10.5,
+    fontFamily: FontFamily.mono,
+    fontSize: 10,
     fontWeight: '700',
   },
   closeBtn: {
@@ -347,6 +351,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   tabBtnText: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -364,13 +369,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 14.5,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: -0.2,
   },
   paragraph: {
+    fontFamily: FontFamily.sans,
     fontSize: 12,
     lineHeight: 18,
+    letterSpacing: -0.1,
   },
   rightItem: {
     flexDirection: 'row',
@@ -379,26 +387,32 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   rightName: {
+    fontFamily: FontFamily.sans,
     fontSize: 12.5,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   rightDesc: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
     lineHeight: 16,
+    letterSpacing: -0.1,
   },
   specBox: {
     padding: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(37, 99, 235, 0.06)',
+    backgroundColor: 'rgba(0, 122, 255, 0.06)',
     gap: 6,
   },
   specTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   specText: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
     lineHeight: 16,
+    letterSpacing: -0.1,
   },
   contactCard: {
     padding: 12,
@@ -407,11 +421,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   contactLabel: {
+    fontFamily: FontFamily.mono,
     fontSize: 9.5,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   contactVal: {
+    fontFamily: FontFamily.mono,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

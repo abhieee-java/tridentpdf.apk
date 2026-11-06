@@ -13,6 +13,8 @@
 | **TSK-007** | Active Document Store Pipeline | Architecture | Lead Architect | None | **COMPLETED** | [`activeDocumentStore.ts`](file:///E:/tridentpdf-mobile/src/services/activeDocumentStore.ts) |
 | **TSK-008** | Centralized System Error Recovery Engine | Architecture | Lead Architect | None | **COMPLETED** | [`systemErrorService.ts`](file:///E:/tridentpdf-mobile/src/services/systemErrorService.ts) |
 | **TSK-009** | 25-Tool Parity Registry & SEO Metadata | Product | Requirements Lead | None | **COMPLETED** | [`toolRegistry.ts`](file:///E:/tridentpdf-mobile/src/data/toolRegistry.ts) |
-| **TSK-010** | Release APK/AAB Native Compilation | DevOps | CI/CD Specialist | TSK-001–009 | **COMPLETED** | `TridentPDF-release.apk` (103 MB) |
+| **TSK-010** | Release APK/AAB Native Compilation | DevOps | CI/CD Specialist | TSK-001–009 | **COMPLETED** | `TridentPDF-release.apk` (104 MB) |
 | **TSK-011** | Live USB Phone Installation & Verification | QA | QA Director | TSK-010 | **COMPLETED** | Device `B6TGUWZDBYMR6HD6` Verified |
-| **TSK-012** | GitHub Repository & Release v1.0.0 Publish | DevOps | Release Lead | TSK-010 | **COMPLETED** | [Release v1.0.0](https://github.com/abhieee-java/tridentpdf.apk/releases/tag/v1.0.0) |
+| **TSK-012** | GitHub Repository & Initial Commit | DevOps | Release Lead | TSK-010 | **COMPLETED** | [GitHub Repo](https://github.com/abhieee-java/tridentpdf.apk) |
+| **TSK-013** | Apple HIG Obsidian Palette & Frosted FAB | Frontend | Senior UI Designer | TSK-001 | **COMPLETED** | [`colors.ts`](file:///E:/tridentpdf-mobile/src/theme/colors.ts), [`WPSBottomNav.tsx`](file:///E:/tridentpdf-mobile/src/components/WPSBottomNav.tsx) |
+| **TSK-014** | Native Inter Font Bundling & ReactFontManager Override | Architecture | Senior Mobile Architect | TSK-013 | **IN PROGRESS** | [`MainApplication.kt`](file:///E:/tridentpdf-mobile/android/app/src/main/java/com/tridentpdf/app/MainApplication.kt), [`typography.ts`](file:///E:/tridentpdf-mobile/src/theme/typography.ts) |

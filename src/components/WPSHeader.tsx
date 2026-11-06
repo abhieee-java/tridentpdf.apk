@@ -21,6 +21,7 @@ import {
   Calendar,
   HardDrive,
 } from 'lucide-react-native';
+import { FontFamily } from '../theme/typography';
 
 export type DocumentFormatFilter = 'all' | 'doc' | 'xls' | 'ppt' | 'pdf' | 'txt';
 export type SortField = 'date' | 'name' | 'size';
@@ -44,11 +45,11 @@ const FILTER_CHIPS: Array<{
   label: string;
   color: string;
 }> = [
-  { id: 'all', label: 'All', color: '#3B82F6' },
-  { id: 'doc', label: 'DOC', color: '#2563EB' },
-  { id: 'xls', label: 'XLS', color: '#16A34A' },
-  { id: 'ppt', label: 'PPT', color: '#EA580C' },
-  { id: 'pdf', label: 'PDF', color: '#DC2626' },
+  { id: 'all', label: 'All', color: '#007AFF' },
+  { id: 'doc', label: 'DOC', color: '#007AFF' },
+  { id: 'xls', label: 'XLS', color: '#34C759' },
+  { id: 'ppt', label: 'PPT', color: '#FF9500' },
+  { id: 'pdf', label: 'PDF', color: '#FF3B30' },
   { id: 'txt', label: 'TXT', color: '#64748B' },
 ];
 
@@ -89,8 +90,8 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? '#121217' : '#FFFFFF',
-          borderBottomColor: isDark ? '#27272A' : '#EBE7F7',
+          backgroundColor: isDark ? '#09090E' : '#FFFFFF',
+          borderBottomColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
         },
       ]}
     >
@@ -100,14 +101,14 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
           style={[
             styles.searchContainer,
             {
-              backgroundColor: isDark ? '#1E1E26' : '#F3F4F6',
-              borderColor: isDark ? '#2E2E3C' : '#E5E7EB',
+              backgroundColor: isDark ? '#14141E' : '#F1F3F5',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
             },
           ]}
         >
-          <Search size={18} color={theme.textMuted} style={styles.searchIcon} />
+          <Search size={16} color={theme.textMuted} style={styles.searchIcon} />
           <TextInput
-            style={[styles.searchInput, { color: theme.textPrimary }]}
+            style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#0F172A' }]}
             placeholder="Search documents, sheets, slides..."
             placeholderTextColor={theme.textMuted}
             value={searchQuery}
@@ -133,14 +134,14 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
           style={[
             styles.iconBtn,
             {
-              backgroundColor: isDark ? '#1E1E26' : '#F3F4F6',
-              borderColor: isDark ? '#2E2E3C' : '#E5E7EB',
+              backgroundColor: isDark ? '#14141E' : '#F1F3F5',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
             },
           ]}
           onPress={() => setSortModalVisible(true)}
           activeOpacity={0.7}
         >
-          <ListFilter size={18} color={theme.textPrimary} />
+          <ListFilter size={17} color={isDark ? '#FFFFFF' : '#0F172A'} />
         </TouchableOpacity>
 
         {/* Cloud Status Indicator (if enabled) */}
@@ -149,15 +150,15 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
             style={[
               styles.iconBtn,
               {
-                backgroundColor: isDark ? '#1E1E26' : '#F3F4F6',
-                borderColor: isDark ? '#2E2E3C' : '#E5E7EB',
+                backgroundColor: isDark ? '#14141E' : '#F1F3F5',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
               },
             ]}
             onPress={onCloudPress}
             activeOpacity={0.7}
           >
             <Cloud
-              size={18}
+              size={17}
               color={
                 cloudStatus === 'connected'
                   ? '#10B981'
@@ -192,13 +193,13 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
                         ? `${chipColor}25`
                         : `${chipColor}15`
                       : isDark
-                      ? '#1A1A22'
-                      : '#F3F4F6',
+                      ? '#14141E'
+                      : '#F1F3F5',
                     borderColor: isSelected
                       ? chipColor
                       : isDark
-                      ? '#272732'
-                      : '#E5E7EB',
+                      ? 'rgba(255, 255, 255, 0.08)'
+                      : 'rgba(0, 0, 0, 0.06)',
                   },
                 ]}
                 onPress={() => handleSelectFilter(chip.id)}
@@ -244,8 +245,8 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
             style={[
               styles.sortMenu,
               {
-                backgroundColor: isDark ? '#1C1C24' : '#FFFFFF',
-                borderColor: isDark ? '#2E2E3C' : '#E5E7EB',
+                backgroundColor: isDark ? '#14141E' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
               },
             ]}
           >
@@ -264,7 +265,7 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
                 </Text>
               </View>
               {sortField === 'date' && sortDirection === 'desc' && (
-                <Check size={16} color="#2563EB" />
+                <Check size={16} color="#007AFF" />
               )}
             </TouchableOpacity>
 
@@ -279,7 +280,7 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
                 </Text>
               </View>
               {sortField === 'date' && sortDirection === 'asc' && (
-                <Check size={16} color="#2563EB" />
+                <Check size={16} color="#007AFF" />
               )}
             </TouchableOpacity>
 
@@ -294,7 +295,7 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
                 </Text>
               </View>
               {sortField === 'name' && sortDirection === 'asc' && (
-                <Check size={16} color="#2563EB" />
+                <Check size={16} color="#007AFF" />
               )}
             </TouchableOpacity>
 
@@ -309,7 +310,7 @@ export const WPSHeader: React.FC<WPSHeaderProps> = ({
                 </Text>
               </View>
               {sortField === 'size' && sortDirection === 'desc' && (
-                <Check size={16} color="#2563EB" />
+                <Check size={16} color="#007AFF" />
               )}
             </TouchableOpacity>
           </View>
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 8,
     paddingBottom: 10,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   topRow: {
     flexDirection: 'row',
@@ -335,8 +336,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    height: 40,
-    borderRadius: 20,
+    height: 38,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 12,
   },
@@ -345,17 +346,19 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontFamily: FontFamily.sans,
+    fontSize: 13.5,
     height: '100%',
     padding: 0,
+    letterSpacing: -0.1,
   },
   clearBtn: {
     padding: 4,
   },
   iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -370,24 +373,25 @@ const styles = StyleSheet.create({
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 13,
+    paddingVertical: 5.5,
+    borderRadius: 14,
     borderWidth: 1,
     gap: 6,
   },
   chipDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   filterChipText: {
-    fontSize: 12.5,
-    letterSpacing: 0.2,
+    fontFamily: FontFamily.sans,
+    fontSize: 12,
+    letterSpacing: -0.1,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -400,12 +404,13 @@ const styles = StyleSheet.create({
     padding: 18,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 8,
   },
   sortMenuTitle: {
-    fontSize: 11,
+    fontFamily: FontFamily.mono,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.8,
     marginBottom: 12,
@@ -425,7 +430,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sortOptionText: {
-    fontSize: 14,
+    fontFamily: FontFamily.sans,
+    fontSize: 13.5,
     fontWeight: '500',
+    letterSpacing: -0.1,
   },
 });

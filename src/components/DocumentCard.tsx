@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
 import { MoreVertical, Star, Cloud, HardDrive } from 'lucide-react-native';
 import { FormatBadge, DocumentType } from './FormatBadge';
+import { FontFamily } from '../theme/typography';
 
 export interface DocumentItem {
   id: string;
@@ -104,8 +105,8 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
       style={[
         styles.card,
         {
-          backgroundColor: isDark ? '#14141B' : '#FFFFFF',
-          borderColor: isDark ? '#23232E' : '#EEF0F3',
+          backgroundColor: isDark ? '#111118' : '#FFFFFF',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
         },
       ]}
       onPress={handleCardPress}
@@ -117,24 +118,24 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
       {/* Title & Metadata */}
       <View style={styles.body}>
         <Text
-          style={[styles.title, { color: theme.textPrimary }]}
+          style={[styles.title, { color: isDark ? '#FFFFFF' : '#0F172A' }]}
           numberOfLines={1}
           ellipsizeMode="middle"
         >
           {document.name}
         </Text>
         <View style={styles.metaRow}>
-          <Text style={[styles.metaText, { color: theme.textMuted }]}>
+          <Text style={[styles.metaTime, { color: theme.textMuted }]}>
             {formatTimeAgo(document.modifiedAt)}
           </Text>
           <Text style={[styles.metaDot, { color: theme.textMuted }]}>•</Text>
-          <Text style={[styles.metaText, { color: theme.textMuted }]}>
+          <Text style={[styles.metaSize, { color: isDark ? '#38BDF8' : '#007AFF' }]}>
             {formatFileSize(document.size)}
           </Text>
 
           {document.isCloud ? (
             <View style={styles.cloudBadge}>
-              <Cloud size={11} color="#3B82F6" />
+              <Cloud size={10} color="#007AFF" />
               <Text style={styles.cloudText}>Cloud</Text>
             </View>
           ) : (
@@ -144,7 +145,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
           )}
 
           {document.isStarred && (
-            <Star size={12} color="#F59E0B" fill="#F59E0B" style={styles.starIcon} />
+            <Star size={11} color="#F59E0B" fill="#F59E0B" style={styles.starIcon} />
           )}
         </View>
       </View>
@@ -153,9 +154,9 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
       <TouchableOpacity
         style={styles.moreBtn}
         onPress={handleActionMenu}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <MoreVertical size={18} color={theme.textMuted} />
+        <MoreVertical size={16} color={theme.textMuted} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -172,12 +173,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 4,
     gap: 14,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   body: {
     flex: 1,
-    gap: 4,
+    gap: 3,
   },
   title: {
+    fontFamily: FontFamily.sans,
     fontSize: 14.5,
     fontWeight: '600',
     letterSpacing: -0.2,
@@ -187,26 +194,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
-  metaText: {
-    fontSize: 12,
+  metaTime: {
+    fontFamily: FontFamily.sans,
+    fontSize: 11.5,
+    letterSpacing: -0.1,
   },
   metaDot: {
-    fontSize: 10,
+    fontSize: 9,
+  },
+  metaSize: {
+    fontFamily: FontFamily.mono,
+    fontSize: 11,
+    fontWeight: '600',
   },
   cloudBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 4,
     marginLeft: 3,
   },
   cloudText: {
-    fontSize: 10,
+    fontFamily: FontFamily.mono,
+    fontSize: 9.5,
     fontWeight: '700',
-    color: '#3B82F6',
+    color: '#007AFF',
   },
   localBadge: {
     marginLeft: 2,

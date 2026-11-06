@@ -32,6 +32,7 @@ import { DocumentStorageService } from '../services/documentStorage';
 import { SystemErrorService } from '../services/systemErrorService';
 import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import * as Haptics from 'expo-haptics';
+import { FontFamily } from '../theme/typography';
 
 export type SupportedOfficeFormat = DocumentType;
 
@@ -645,8 +646,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   segmentText: {
+    fontFamily: FontFamily.sans,
     fontSize: 13,
     fontWeight: '500',
+    letterSpacing: -0.1,
   },
   segmentTextActive: {
     fontWeight: '700',
@@ -673,8 +676,10 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: FontFamily.sans,
     fontSize: 13,
     paddingVertical: 0,
+    letterSpacing: -0.1,
   },
   sortToggle: {
     width: 38,
@@ -687,12 +692,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#007AFF',
     paddingHorizontal: 12,
     height: 38,
     borderRadius: 8,
   },
   importBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
@@ -710,6 +716,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   chipText: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
     fontWeight: '500',
   },
@@ -732,10 +739,13 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   docName: {
+    fontFamily: FontFamily.sans,
     fontSize: 13.5,
     fontWeight: '600',
+    letterSpacing: -0.2,
   },
   docMeta: {
+    fontFamily: FontFamily.mono,
     fontSize: 11,
     marginTop: 2,
   },
@@ -749,7 +759,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   downloadBtn: {
-    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
   },
   cloudBanner: {
     marginHorizontal: 14,
@@ -766,7 +776,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -775,10 +785,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cloudBannerTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 14,
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
   cloudBannerFolder: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
     marginTop: 1,
   },
@@ -800,11 +813,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statusPillText: {
+    fontFamily: FontFamily.mono,
     fontSize: 11,
     color: '#10B981',
     fontWeight: '600',
   },
   cloudCountText: {
+    fontFamily: FontFamily.mono,
     fontSize: 11,
   },
   cloudTitleRow: {
@@ -813,14 +828,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cloudTag: {
-    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
   },
   cloudTagText: {
+    fontFamily: FontFamily.mono,
     fontSize: 9.5,
-    color: '#2563EB',
+    color: '#007AFF',
     fontWeight: '700',
   },
   emptyWrap: {
@@ -830,22 +846,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 16,
     fontWeight: '700',
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 12.5,
     textAlign: 'center',
     paddingHorizontal: 30,
+    letterSpacing: -0.1,
   },
   emptyAction: {
     marginTop: 12,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
   emptyActionText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
@@ -858,6 +879,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',

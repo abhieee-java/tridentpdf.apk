@@ -19,6 +19,7 @@ import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import { PDFEngine } from '../services/pdfEngine';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Haptics from 'expo-haptics';
+import { FontFamily } from '../theme/typography';
 import {
   X,
   Search,
@@ -503,6 +504,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryActionText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
@@ -518,6 +520,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   secondaryActionText: {
+    fontFamily: FontFamily.sans,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -534,8 +537,10 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: FontFamily.sans,
     fontSize: 13,
     padding: 0,
+    letterSpacing: -0.1,
   },
   tabsRow: {
     flexDirection: 'row',
@@ -552,11 +557,13 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabBtnActive: {
-    borderBottomColor: '#2563EB',
+    borderBottomColor: '#007AFF',
   },
   tabText: {
+    fontFamily: FontFamily.sans,
     fontSize: 13,
     fontWeight: '700',
+    letterSpacing: -0.1,
   },
   listContent: {
     paddingHorizontal: 20,
@@ -577,11 +584,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   docName: {
+    fontFamily: FontFamily.sans,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
   docMeta: {
-    fontSize: 12,
+    fontFamily: FontFamily.mono,
+    fontSize: 11.5,
   },
   starBtn: {
     padding: 6,
@@ -593,6 +603,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   loadingText: {
+    fontFamily: FontFamily.sans,
     fontSize: 13,
   },
   emptyContainer: {
@@ -603,12 +614,16 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   emptyTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 16,
     fontWeight: '700',
+    letterSpacing: -0.3,
   },
   emptySub: {
+    fontFamily: FontFamily.sans,
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
+    letterSpacing: -0.1,
   },
 });

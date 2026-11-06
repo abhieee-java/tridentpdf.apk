@@ -33,6 +33,7 @@ import { ToolDetailModal } from './src/components/ToolDetailModal';
 import { DpdpComplianceModal } from './src/components/DpdpComplianceModal';
 import { AppTool } from './src/types';
 import { ArrowLeft, Share2, FileText, CheckCircle2 } from 'lucide-react-native';
+import { FontFamily } from './src/theme/typography';
 
 export interface DocumentRouteParams {
   filePath: string;
@@ -417,12 +418,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   docBarTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 15,
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
   docBarSub: {
+    fontFamily: FontFamily.sans,
     fontSize: 11,
     marginTop: 1,
+    letterSpacing: -0.1,
   },
   shareBtn: {
     padding: 6,
@@ -443,9 +448,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   docPreviewHeading: {
+    fontFamily: FontFamily.sans,
     fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -461,11 +468,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   readyBadgeText: {
+    fontFamily: FontFamily.mono,
     fontSize: 11,
     fontWeight: '600',
     color: '#10B981',
   },
   docPreviewDesc: {
+    fontFamily: FontFamily.sans,
     fontSize: 12.5,
     textAlign: 'center',
     lineHeight: 18,

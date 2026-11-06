@@ -17,6 +17,7 @@ import { SystemErrorService } from '../services/systemErrorService';
 import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import * as Haptics from 'expo-haptics';
 import { Search, FilePlus, FolderOpen } from 'lucide-react-native';
+import { FontFamily } from '../theme/typography';
 
 export interface DocumentRouteParams {
   filePath: string;
@@ -366,7 +367,8 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontFamily: FontFamily.mono,
+    fontSize: 10.5,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
@@ -382,32 +384,37 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
   emptyTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
+    letterSpacing: -0.1,
   },
   clearFilterBtn: {
     marginTop: 8,
     paddingHorizontal: 16,
     paddingVertical: 9,
-    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
     borderRadius: 20,
   },
   clearFilterBtnText: {
-    color: '#2563EB',
+    fontFamily: FontFamily.sans,
+    color: '#007AFF',
     fontWeight: '700',
     fontSize: 13,
   },
@@ -418,12 +425,13 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 18,
     paddingVertical: 10,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#007AFF',
     borderRadius: 20,
   },
   importBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 13.5,
+    fontSize: 13,
   },
 });

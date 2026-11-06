@@ -28,6 +28,7 @@ import * as Haptics from 'expo-haptics';
 import { SystemErrorService } from '../services/systemErrorService';
 import { ActiveDocumentStore } from '../services/activeDocumentStore';
 import { FileAccessHubModal } from './FileAccessHubModal';
+import { FontFamily } from '../theme/typography';
 import {
   X,
   ShieldCheck,
@@ -1115,12 +1116,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   headerCategory: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FontFamily.mono,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   closeBtn: {
     padding: 6,
@@ -1147,22 +1153,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   docBarTitle: {
+    fontFamily: FontFamily.sans,
     fontSize: 12.5,
-    fontWeight: '700',
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   docBarSub: {
+    fontFamily: FontFamily.mono,
     fontSize: 10.5,
   },
   docSelectBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#007AFF',
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 8,
   },
   docSelectBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
@@ -1179,17 +1189,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   controlHeading: {
+    fontFamily: FontFamily.sans,
     fontSize: 13.5,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   toolOptionsWrap: {
     gap: 8,
   },
   optionLabel: {
+    fontFamily: FontFamily.sans,
     fontSize: 12,
     fontWeight: '600',
+    letterSpacing: -0.1,
   },
   textInput: {
+    fontFamily: FontFamily.sans,
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 12,
@@ -1207,6 +1222,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   chipBtnText: {
+    fontFamily: FontFamily.sans,
     fontSize: 11.5,
     fontWeight: '700',
   },
@@ -1220,6 +1236,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   colorChipText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 11.5,
     fontWeight: '700',
@@ -1233,6 +1250,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   mergeFileName: {
+    fontFamily: FontFamily.sans,
     fontSize: 11.5,
     flex: 1,
   },
@@ -1241,12 +1259,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   addMoreBtnText: {
-    color: '#2563EB',
+    fontFamily: FontFamily.sans,
+    color: '#007AFF',
     fontSize: 11.5,
     fontWeight: '700',
   },
   executeBtn: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#007AFF',
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
@@ -1259,9 +1278,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   executeBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 13.5,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   resultBox: {
     flexDirection: 'row',
@@ -1274,6 +1295,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   resultMsgText: {
+    fontFamily: FontFamily.sans,
     color: '#10B981',
     fontSize: 12,
     fontWeight: '700',
@@ -1291,6 +1313,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   shareBtnText: {
+    fontFamily: FontFamily.sans,
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
@@ -1304,7 +1327,7 @@ const styles = StyleSheet.create({
   aiResponseText: {
     fontSize: 12,
     lineHeight: 18,
-    fontFamily: 'monospace',
+    fontFamily: FontFamily.mono,
   },
   seoSection: {
     gap: 14,
